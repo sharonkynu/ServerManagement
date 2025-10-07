@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div style="max-width:420px;margin:70px auto;">
+      <div class="card fade-in">
+        <h2 style="color:var(--accent);margin:0 0 6px 0;">System Admin</h2>
+        <div class="small-muted" style="margin-bottom:12px;">Login to manage services</div>
+
+        {% with messages = get_flashed_messages(with_categories=false) %}
+          {% if messages %}
+            {% for m in messages %}
+              <div style="color:#ff9b9b;margin-bottom:8px;">{{ m }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+          <div style="margin-bottom:8px;">
+            <input class="form-control" name="username" placeholder="Username" required autofocus>
+          </div>
+          <div style="margin-bottom:12px;">
+            <input class="form-control" name="password" placeholder="Password" type="password" required>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" type="submit">Sign in</button>
+            <a class="btn btn-ghost" href="/remote">Test Connectivity</a>
+          </div>
+        </form>
+
+        <div style="margin-top:12px;font-size:0.9rem;color:var(--muted);">Default admin: <strong>admin / admin123</strong></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

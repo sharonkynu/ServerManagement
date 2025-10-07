@@ -1,0 +1,7 @@
+version: '3'
+services:
+  h323_service:
+    image: myh323:latest
+    environment:
+      - H323_ENABLED=FALSE
+

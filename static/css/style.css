@@ -1,0 +1,96 @@
+:root{
+  --bg1: #061129;
+  --bg2: #071a32;
+  --card: rgba(255,255,255,0.03);
+  --accent: #29a8ff;
+  --muted: #9fb0c7;
+  --glass: rgba(255,255,255,0.04);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin:0;
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+  color: #e6f0fb;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* container */
+.container {
+  max-width:1100px;
+  margin:26px auto;
+  padding:12px;
+}
+
+/* navbar */
+.navbar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin-bottom:18px;
+}
+.brand { color: var(--accent); font-weight:700; font-size:1.1rem; }
+.nav-actions { display:flex; gap:8px; align-items:center; }
+
+/* cards */
+.card {
+  background: var(--card);
+  border-radius:10px;
+  padding:14px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.row { display:flex; gap:18px; flex-wrap:wrap; }
+.col { flex:1 1 300px; min-width:260px; }
+
+/* tile */
+.tile-title { color:var(--muted); font-weight:600; font-size:0.95rem; margin-bottom:8px; }
+.big-number { font-size:1.6rem; font-weight:700; }
+
+/* fade-in */
+.fade-in { transform: translateY(8px); opacity:0; animation: fadeInUp 0.45s ease forwards; }
+@keyframes fadeInUp { to { transform: none; opacity:1; } }
+
+/* forms */
+.form-control {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.06);
+  padding:8px 10px;
+  border-radius:6px;
+  color: #e6f0fb;
+}
+
+/* buttons */
+.btn { padding:8px 12px; border-radius:8px; cursor:pointer; border:none; }
+.btn-primary { background:var(--accent); color:#041427; font-weight:700; }
+.btn-ghost { background:transparent; color:var(--accent); border:1px solid rgba(46,163,255,0.12); }
+
+/* ports table (Cisco-like feel, simplified) */
+.ports-table { width:100%; border-collapse:collapse; margin-top:12px; }
+.ports-table th, .ports-table td {
+  padding:8px 10px;
+  border:1px solid rgba(255,255,255,0.03);
+  font-size:0.95rem;
+}
+.ports-table thead th {
+  background:#062038; color:var(--accent); font-weight:700; text-align:center;
+}
+.section-header {
+  background:#071127; color:var(--muted); padding:8px 10px; font-weight:600; border-radius:6px;
+  margin-top:10px;
+}
+
+/* small */
+.small-muted { color:var(--muted); font-size:0.9rem; }
+
+/* responsive */
+@media (max-width:800px) {
+  .row { flex-direction:column; }
+}
+

@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>User Management</title>
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="navbar">
+      <div class="brand">Users</div>
+      <div class="nav-actions"><a class="btn btn-ghost" href="/dashboard">Back</a></div>
+    </div>
+
+    <div class="card fade-in" style="margin-top:12px;">
+      <form id="usersForm" method="POST">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <input class="form-control" name="username" placeholder="username" required>
+          <input class="form-control" name="password" placeholder="password (leave blank to keep)">
+          <select class="form-control" name="role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="btn btn-primary" name="action" value="add">Create</button>
+          <button class="btn btn-ghost" name="action" value="delete">Delete</button>
+        </div>
+      </form>
+
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="color:var(--muted)"><th style="text-align:left">Username</th><th>Role</th></tr></thead>
+        <tbody>
+        {% for u in users %}
+          <tr>
+            <td style="padding:8px 6px;">{{ u.username }}</td>
+            <td style="padding:8px 6px;">{{ u.role }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% if message %}
+        <div style="margin-top:12px;color:#a7f0c7;">{{ message }}</div>
+      {% endif %}
+    </div>
+  </div>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+

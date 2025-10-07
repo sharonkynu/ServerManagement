@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SSL Management</title>
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="navbar">
+      <div class="brand">SSL</div>
+      <div class="nav-actions"><a class="btn btn-ghost" href="/dashboard">Back</a></div>
+    </div>
+
+    <div class="card fade-in" style="margin-top:12px;">
+      <form method="POST" enctype="multipart/form-data">
+        <div style="margin-bottom:10px;">
+          <label class="small-muted">Upload certificate file (.pem)</label>
+          <input class="form-control" type="file" name="cert_file">
+        </div>
+        <div style="margin-bottom:10px;">
+          <label class="small-muted">Upload key file (.pem)</label>
+          <input class="form-control" type="file" name="key_file">
+        </div>
+
+        <div style="text-align:center;margin:8px 0">— OR —</div>
+
+        <div style="margin-bottom:10px;">
+          <label class="small-muted">Paste certificate (PEM)</label>
+          <textarea class="form-control" name="cert_text" rows="6"></textarea>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label class="small-muted">Paste key (PEM)</label>
+          <textarea class="form-control" name="key_text" rows="6"></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" type="submit">Save SSL</button>
+        </div>
+      </form>
+
+      {% with messages = get_flashed_messages(with_categories=false) %}
+        {% if messages %}
+          <div style="margin-top:12px;color:#a7f0c7;">{{ messages[0] }}</div>
+        {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Remote Test</title>
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="navbar">
+      <div class="brand">Remote Check</div>
+      <div class="nav-actions"><a class="btn btn-ghost" href="/dashboard">Back</a></div>
+    </div>
+
+    <div class="card fade-in" style="margin-top:12px;">
+      <form method="POST" action="/remote">
+        <div style="margin-bottom:8px;"><input class="form-control" name="addr" placeholder="IP or hostname" required></div>
+        <div style="margin-bottom:8px;">
+          <select class="form-control" name="method">
+            <option value="ping">Ping</option>
+            <option value="telnet">Telnet</option>
+          </select>
+        </div>
+        <div style="margin-bottom:8px;"><input class="form-control" name="port" placeholder="port (for telnet)"></div>
+        <div><button class="btn btn-primary" type="submit">Check</button></div>
+      </form>
+
+      {% if result %}
+        <pre style="margin-top:10px;background:#05101a;padding:10px;border-radius:6px;">{{ result }}</pre>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
+

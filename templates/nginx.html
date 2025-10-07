@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Nginx Control</title>
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="navbar">
+      <div class="brand">Nginx Control</div>
+      <div class="nav-actions"><a class="btn btn-ghost" href="/dashboard">Back</a></div>
+    </div>
+
+    <div class="card fade-in" style="margin-top:12px;">
+      <form id="nginxForm" method="POST">
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <label><input type="radio" name="action" value="restart" checked> Restart</label>
+          <label><input type="radio" name="action" value="stop"> Stop</label>
+          <label><input type="radio" name="action" value="start"> Start</label>
+        </div>
+        <div>
+          <button class="btn btn-primary" type="submit">Execute</button>
+        </div>
+      </form>
+
+      {% with messages = get_flashed_messages(with_categories=false) %}
+        {% if messages %}
+          <pre style="margin-top:12px;background:#05101a;padding:10px;border-radius:6px;">{{ messages[0] }}</pre>
+        {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+

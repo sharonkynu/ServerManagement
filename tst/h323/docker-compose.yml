@@ -1,0 +1,7 @@
+version: '3'
+services:
+  sip_service:
+    image: myh323:latest
+    environment:
+      - SIP_ENABLED=TRUE
+

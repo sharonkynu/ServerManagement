@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ports & H323/SIP</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="navbar">
+      <div class="brand">Ports & H323/SIP</div>
+      <div class="nav-actions">
+        <a class="btn btn-ghost" href="/dashboard">Back</a>
+      </div>
+    </div>
+
+    <div class="card fade-in" style="margin-top:12px;">
+      <div style="display:flex;gap:14px;align-items:center;">
+        <label><input id="sip_checkbox" type="checkbox" checked> SIP Enabled</label>
+        <label><input id="h323_checkbox" type="checkbox" checked> H.323 Enabled</label>
+      </div>
+
+      <div class="section-header">TCP Services</div>
+      <table class="ports-table">
+        <thead><tr><th>Service</th><th>Port A</th><th>Port B</th></tr></thead>
+        <tbody>
+          <tr><td>HTTP</td>
+            <td><input class="form-control" type="number" value="80"></td>
+            <td><input class="form-control" type="number" value="80"></td></tr>
+          <tr><td>H323</td>
+            <td><input class="form-control" type="number" value="1720"></td>
+            <td><input class="form-control" type="number" value="1720"></td></tr>
+          <tr><td>SIP (TCP)</td>
+            <td><input class="form-control" type="number" value="5060"></td>
+            <td><input class="form-control" type="number" value="5060"></td></tr>
+        </tbody>
+      </table>
+
+      <div style="display:flex;justify-content:space-between;margin-top:12px;align-items:center;">
+        <div id="portsStatus" class="small-muted">Change toggles and click Apply</div>
+        <div>
+          <button id="applyPorts" class="btn btn-primary">Apply</button>
+          <a href="/dashboard" class="btn btn-ghost">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+
