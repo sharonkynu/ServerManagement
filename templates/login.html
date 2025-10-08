@@ -1,126 +1,256 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Server Management</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Server Management</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body.login-body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, #0a1931, #000814);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      color: #fff;
+    }
+
+    /* Floating Orbs Animation */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.2;
+      background: linear-gradient(135deg, #00c6ff, #0078ff);
+      animation: float 10s ease-in-out infinite;
+    }
+
+    .orb:nth-child(1) {
+      width: 150px;
+      height: 150px;
+      top: 10%;
+      left: 15%;
+      animation-delay: 0s;
+    }
+    .orb:nth-child(2) {
+      width: 100px;
+      height: 100px;
+      bottom: 20%;
+      right: 20%;
+      animation-delay: 2s;
+    }
+    .orb:nth-child(3) {
+      width: 200px;
+      height: 200px;
+      top: 30%;
+      right: 10%;
+      animation-delay: 4s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); opacity: 0.2; }
+      50% { transform: translateY(-25px); opacity: 0.35; }
+    }
+
+    .login-container {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 120, 255, 0.3);
+      z-index: 10;
+      animation: fadeInUp 1s ease;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-icon {
+      font-size: 60px;
+      color: #00aaff;
+      text-shadow: 0 0 15px #00aaff;
+      animation: pulseGlow 2s infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { text-shadow: 0 0 10px #00aaff, 0 0 20px #0078ff; }
+      50% { text-shadow: 0 0 25px #00e6ff, 0 0 35px #009dff; }
+    }
+
+    .login-header h1 {
+      margin: 10px 0 5px;
+      font-weight: 600;
+      color: #e0f4ff;
+    }
+
+    .login-header p {
+      font-size: 14px;
+      color: #a9c9ff;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .input-group i.input-icon {
+      position: absolute;
+      top: 50%;
+      left: 15px;
+      transform: translateY(-50%);
+      color: #a9c9ff;
+      font-size: 18px;
+      transition: color 0.3s ease;
+    }
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px 12px 45px; /* same vertical padding as button */
+  border: none;
+  border-radius: 8px;            /* same curve as button */
+  font-size: 15px;
+  color: #fff;
+  outline: none;
+  background: rgba(255,255,255,0.08);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 0 10px rgba(0,170,255,0.4);
+}
+
+
+    .input-group input:focus + i {
+      color: #00aaff;
+    }
+
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(90deg, #0078ff, #00c6ff);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .login-btn:hover {
+      background: linear-gradient(90deg, #009dff, #00e6ff);
+      box-shadow: 0 0 15px #00aaff;
+    }
+
+    .login-btn.loading {
+      opacity: 0.8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .flash-message {
+      margin-bottom: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      text-align: center;
+    }
+
+    /* Glow pulse animation for success/error/info messages */
+    .flash-success { border: 1px solid #00ffb3; color: #00ffb3; }
+    .flash-error { border: 1px solid #ff6b6b; color: #ff6b6b; }
+    .flash-info { border: 1px solid #4fc3f7; color: #4fc3f7; }
+
+    .flash-success, .flash-error, .flash-info {
+      animation: glowFlash 1.2s ease-in-out;
+    }
+
+    @keyframes glowFlash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
 </head>
 <body class="login-body">
-    <div class="login-container">
-        <div class="login-box">
-            <div class="login-header">
-                <div class="login-icon">
-                    <i class="fas fa-server"></i>
-                </div>
-                <h1>Server Management</h1>
-                <p>Sign in to access the dashboard</p>
-            </div>
-            
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flash-message flash-{{ category }}">
-                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'error' else 'info-circle' }}"></i>
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
 
-            <form method="POST" class="login-form" autocomplete="off">
-                <div class="form-group">
-                    <div class="input-group">
-                        <i class="fas fa-user input-icon"></i>
-                        <input 
-                            type="text" 
-                            name="username" 
-                            id="username-field" 
-                            placeholder="Username" 
-                            required 
-                            autocomplete="off"
-                            style="
-                                width: 100%;
-                                padding: 15px 15px 15px 45px;
-                                border: 2px solid #e1e5e9;
-                                border-radius: 12px;
-                                font-size: 16px;
-                                color: #333;
-                                background-color: white;
-                            ">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="input-group">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input 
-                            type="password" 
-                            name="password" 
-                            id="password-field" 
-                            placeholder="Password" 
-                            required 
-                            autocomplete="new-password"
-                            style="
-                                width: 100%;
-                                padding: 15px 15px 15px 45px;
-                                border: 2px solid #e1e5e9;
-                                border-radius: 12px;
-                                font-size: 16px;
-                                color: #333;
-                                background-color: white;
-                            ">
-                    </div>
-                </div>
-                
-                <button type="submit" class="login-btn">
-                    <span class="btn-text">Sign In</span>
-                    <i class="fas fa-arrow-right btn-icon"></i>
-                </button>
-            </form>
-<!--            
-            <div class="login-footer">
-                <p>Default credentials: <strong>admin / admin123</strong></p>
-            </div>
-        </div>
--->       
-        <div class="login-background">
-            <div class="bg-circle circle-1"></div>
-            <div class="bg-circle circle-2"></div>
-            <div class="bg-circle circle-3"></div>
-        </div>
+  <!-- Floating background orbs -->
+  <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
+
+  <div class="login-container">
+    <div class="login-header">
+      <div class="login-icon"><i class="fas fa-server"></i></div>
+      <h1>Server Management</h1>
+      <p>Sign in to access the dashboard</p>
     </div>
 
-    <script>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'error' else 'info-circle' }}"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="login-form" autocomplete="off">
+      <div class="input-group">
+        <i class="fas fa-user input-icon"></i>
+        <input type="text" name="username" id="username-field" placeholder="Username" required autocomplete="off">
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-lock input-icon"></i>
+        <input type="password" name="password" id="password-field" placeholder="Password" required autocomplete="new-password">
+      </div>
+
+      <button type="submit" class="login-btn">
+        <span class="btn-text">Sign In</span>
+        <i class="fas fa-arrow-right btn-icon"></i>
+      </button>
+    </form>
+  </div>
+
+  <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Login page ready');
+      const form = document.querySelector('.login-form');
+      const submitBtn = document.querySelector('.login-btn');
+      const usernameInput = document.getElementById('username-field');
+      const passwordInput = document.getElementById('password-field');
 
-        const form = document.querySelector('.login-form');
-        const submitBtn = document.querySelector('.login-btn');
-        const usernameInput = document.getElementById('username-field');
-        const passwordInput = document.getElementById('password-field');
-
-        // Make sure fields are editable and not prefilled
-        if (usernameInput && passwordInput) {
-            usernameInput.removeAttribute('readonly');
-            usernameInput.removeAttribute('disabled');
-            passwordInput.removeAttribute('readonly');
-            passwordInput.removeAttribute('disabled');
-            usernameInput.value = '';
-            passwordInput.value = '';
-        }
-
-        // Handle button loading state on submit
-        if (form && submitBtn) {
-            form.addEventListener('submit', function() {
-                submitBtn.classList.add('loading');
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
-                submitBtn.disabled = true;
-            });
-        }
+      if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+          submitBtn.classList.add('loading');
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting to Server...';
+          submitBtn.disabled = true;
+        });
+      }
     });
-    </script>
+  </script>
 </body>
 </html>

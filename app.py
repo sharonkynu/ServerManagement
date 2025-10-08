@@ -291,7 +291,7 @@ def dashboard():
     system_info = get_system_info()
     network_info = get_network_info()
     
-    return render_template('dashboard.html', 
+    return render_template('system.html', 
                          system_info=system_info, 
                          network_info=network_info,
                          user=session['user'],
