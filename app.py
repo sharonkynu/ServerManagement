@@ -22,7 +22,7 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 # Configuration
 USERS_FILE = os.environ.get('USERS_FILE', 'users.json')
 DOCKER_COMPOSE_FILE = os.environ.get('DOCKER_COMPOSE_FILE', 'docker-compose.yml')
-COMPOSE_BASE_DIR = os.environ.get('COMPOSE_BASE_DIR', '/home/sharon')
+COMPOSE_BASE_DIR = os.environ.get('COMPOSE_BASE_DIR', '/home/sharon/Pictures/ServerManagement/tst')
 
 def load_users():
     try:
@@ -165,35 +165,68 @@ def update_docker_compose_env(key, value):
         print(f"Error updating docker compose files: {e}")
         return False
 
-def restart_docker_container():
-    """Restart containers in all compose projects under COMPOSE_BASE_DIR."""
-    try:
-        if not os.path.isdir(COMPOSE_BASE_DIR):
-            # Fallback to current compose file
-            subprocess.run(['docker-compose', 'restart'], check=True, capture_output=True)
-            return True
-        success = True
-        for entry in os.listdir(COMPOSE_BASE_DIR):
-            entry_path = os.path.join(COMPOSE_BASE_DIR, entry)
-            if not os.path.isdir(entry_path):
-                continue
-            compose_file = None
-            for fname in ('docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'):
-                possible = os.path.join(entry_path, fname)
-                if os.path.exists(possible):
-                    compose_file = possible
-                    break
-            if compose_file is None:
+def update_docker_compose_env(key, value):
+    """Update environment variable across docker compose files under COMPOSE_BASE_DIR."""
+    updated_any = False
+    if not os.path.isdir(COMPOSE_BASE_DIR):
+        return False
+    for entry in os.listdir(COMPOSE_BASE_DIR):
+        entry_path = os.path.join(COMPOSE_BASE_DIR, entry)
+        if not os.path.isdir(entry_path):
+            continue
+        for fname in ('docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'):
+            compose_path = os.path.join(entry_path, fname)
+            if not os.path.exists(compose_path):
                 continue
             try:
-                subprocess.run(['docker', 'compose', '-f', compose_file, 'up', '-d'], check=True, capture_output=True)
+                with open(compose_path, 'r') as f:
+                    lines = f.readlines()
+
+                updated = False
+                env_index = None
+                for i, line in enumerate(lines):
+                    if f"- {key}=" in line:
+                        lines[i] = f"      - {key}={value}\n"
+                        updated = True
+                        break
+                    if env_index is None and line.strip().startswith('environment:'):
+                        env_index = i
+                if not updated and env_index is not None:
+                    lines.insert(env_index + 1, f"      - {key}={value}\n")
+                    updated = True
+                if updated:
+                    with open(compose_path, 'w') as f:
+                        f.writelines(lines)
+                    updated_any = True
+            except Exception as inner_e:
+                print(f"Error updating {compose_path}: {inner_e}")
+    return updated_any
+
+
+def restart_docker_container():
+    """Restart containers in all compose projects under COMPOSE_BASE_DIR."""
+    if not os.path.isdir(COMPOSE_BASE_DIR):
+        # Fallback to current directory
+        subprocess.run(['docker-compose', 'restart'], check=True)
+        return True
+    success = True
+    for entry in os.listdir(COMPOSE_BASE_DIR):
+        entry_path = os.path.join(COMPOSE_BASE_DIR, entry)
+        if not os.path.isdir(entry_path):
+            continue
+        compose_file = None
+        for fname in ('docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'):
+            possible = os.path.join(entry_path, fname)
+            if os.path.exists(possible):
+                compose_file = possible
+                break
+        if compose_file:
+            try:
+                subprocess.run(['docker', 'compose', '-f', compose_file, 'up', '-d'], check=True)
             except subprocess.CalledProcessError as e:
                 print(f"Error restarting compose at {compose_file}: {e}")
                 success = False
-        return success
-    except subprocess.CalledProcessError as e:
-        print(f"Error restarting containers: {e}")
-        return False
+    return success
 
 
 @app.route('/')
@@ -248,91 +281,7 @@ def debug_users():
         'admin_exists': 'admin' in users
     })
 
-@app.route('/simple-login', methods=['GET', 'POST'])
-def simple_login():
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '').strip()
-        
-        if not username or not password:
-            flash('Please enter both username and password!', 'error')
-            return render_template('simple_login.html')
-        
-        users = load_users()
-        if username in users and users[username]['password'] == password:
-            session['user'] = username
-            session['role'] = users[username]['role']
-            session.permanent = True
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid username or password!', 'error')
-    
-    return render_template('simple_login.html')
 
-
-
-@app.route('/debug/login-test')
-def debug_login_test():
-    return '''
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Login Debug Test</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 50px; }
-            input { padding: 10px; margin: 5px; border: 2px solid #ccc; width: 200px; }
-            button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
-            .status { margin-top: 20px; padding: 10px; background: #f0f0f0; }
-        </style>
-    </head>
-    <body>
-        <h2>Simple Login Test</h2>
-        <form method="POST" action="/login" id="testForm">
-            <p>Username: <input type="text" name="username" id="username" value="admin" required></p>
-            <p>Password: <input type="password" name="password" id="password" value="admin123" required></p>
-            <p><button type="submit" id="submitBtn">Test Login</button></p>
-        </form>
-        
-        <div class="status" id="status">
-            <p>Status: Ready to test</p>
-            <p>Username field: <span id="usernameStatus"></span></p>
-            <p>Password field: <span id="passwordStatus"></span></p>
-        </div>
-        
-        <p><a href="/debug/users">Check Users</a></p>
-        <p><a href="/debug/session">Check Session</a></p>
-        <p><a href="/login">Back to Main Login</a></p>
-        
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const username = document.getElementById('username');
-                const password = document.getElementById('password');
-                const status = document.getElementById('status');
-                
-                function updateStatus() {
-                    document.getElementById('usernameStatus').textContent = 
-                        'enabled=' + !username.disabled + ', readonly=' + username.readOnly + ', value="' + username.value + '"';
-                    document.getElementById('passwordStatus').textContent = 
-                        'enabled=' + !password.disabled + ', readonly=' + password.readOnly + ', value="' + password.value + '"';
-                }
-                
-                updateStatus();
-                
-                username.addEventListener('input', updateStatus);
-                password.addEventListener('input', updateStatus);
-                
-                username.addEventListener('focus', () => console.log('Username focused'));
-                password.addEventListener('focus', () => console.log('Password focused'));
-                
-                document.getElementById('testForm').addEventListener('submit', function(e) {
-                    status.innerHTML += '<p>Form submitted with: ' + username.value + ' / ' + password.value + '</p>';
-                });
-            });
-        </script>
-    </body>
-    </html>
-    '''
 
 @app.route('/dashboard')
 def dashboard():
@@ -499,27 +448,81 @@ def api_remote_check():
 @app.route('/ports')
 def ports_page():
     if 'user' not in session:
-        return redirect(url_for('login'))
-    
+        return redirect('/login')
     return render_template('ports.html')
+
 
 @app.route('/api/ports_config', methods=['POST'])
 def api_ports_config():
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
-    
+
     config = request.json
     h323_enabled = config.get('h323_enabled', False)
     sip_enabled = config.get('sip_enabled', False)
+    h323_port = config.get('h323_port', '1720')
+    sip_port = config.get('sip_port', '5060')
+
+    # Mutual exclusion
+    if h323_enabled:
+        sip_enabled = False
+    elif sip_enabled:
+        h323_enabled = False
+
     try:
-        # Update all compose projects under COMPOSE_BASE_DIR
         ok1 = update_docker_compose_env('H323_ENABLED', str(h323_enabled).lower())
         ok2 = update_docker_compose_env('SIP_ENABLED', str(sip_enabled).lower())
-        # Restart containers
-        if (ok1 or ok2) and restart_docker_container():
-            return jsonify({'status': 'success', 'message': 'Protocols updated across compose projects and containers restarted'})
+        ok3 = update_docker_compose_env('H323_PORT', str(h323_port))
+        ok4 = update_docker_compose_env('SIP_PORT', str(sip_port))
+
+        restart_ok = restart_docker_container()
+
+        if restart_ok:
+            return jsonify({
+                'status': 'success',
+                'message': 'Protocols updated and containers restarted!',
+                'current_state': {
+                    'h323_enabled': h323_enabled,
+                    'sip_enabled': sip_enabled,
+                    'h323_port': h323_port,
+                    'sip_port': sip_port
+                }
+            })
         else:
-            return jsonify({'status': 'error', 'message': 'Failed to update compose files or restart containers'})
+            return jsonify({'status': 'error', 'message': 'Failed to restart containers'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
+@app.route('/api/ports_config_state', methods=['GET'])
+def api_ports_config_state():
+    """Fetch current state from docker compose files."""
+    state = {
+        'h323_enabled': False,
+        'sip_enabled': False,
+        'h323_port': '1720',
+        'sip_port': '5060'
+    }
+    try:
+        for entry in os.listdir(COMPOSE_BASE_DIR):
+            entry_path = os.path.join(COMPOSE_BASE_DIR, entry)
+            if not os.path.isdir(entry_path):
+                continue
+            for fname in ('docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'):
+                compose_path = os.path.join(entry_path, fname)
+                if os.path.exists(compose_path):
+                    with open(compose_path, 'r') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line.startswith('- H323_ENABLED='):
+                                state['h323_enabled'] = line.split('=')[1].lower() == 'true'
+                            elif line.startswith('- SIP_ENABLED='):
+                                state['sip_enabled'] = line.split('=')[1].lower() == 'true'
+                            elif line.startswith('- H323_PORT='):
+                                state['h323_port'] = line.split('=')[1]
+                            elif line.startswith('- SIP_PORT='):
+                                state['sip_port'] = line.split('=')[1]
+        return jsonify({'status': 'success', 'current_state': state})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 

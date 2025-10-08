@@ -1,7 +1,12 @@
-version: '3'
+version: '3.8'
 services:
-  sip_service:
-    image: myh323:latest
+  app:
+    image: my_app:latest
     environment:
-      - SIP_ENABLED=TRUE
+      - SIP_ENABLED=false
+      - H323_ENABLED=false
+      - H323_PORT=1728
+      - SIP_PORT=5065
+    ports:
+      - "5000:5000"
 

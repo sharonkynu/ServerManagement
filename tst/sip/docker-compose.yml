@@ -1,7 +1,15 @@
-version: '3'
+version: '3.8'
 services:
-  h323_service:
-    image: myh323:latest
+  voip_server:
+    image: voip_server:latest
     environment:
-      - H323_ENABLED=FALSE
+      - H323_ENABLED=false
+      - SIP_ENABLED=false
+      - H323_PORT=1728
+      - SIP_PORT=5065
+      - MAX_CONNECTIONS=100
+      - LOG_LEVEL=debug
+    ports:
+      - "6000:6000"
+      - "5060:5060"
 

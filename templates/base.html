@@ -17,10 +17,12 @@
             <span>Server Management</span>
         </div>
         <div class="nav-menu">
+<!--
             <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
+-->
             <a href="{{ url_for('system_page') }}" class="nav-link {% if request.endpoint == 'system_page' %}active{% endif %}">
                 <i class="fas fa-microchip"></i>
                 <span>System</span>
