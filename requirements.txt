@@ -1,5 +1,5 @@
-Flask
-bcrypt
-psutil
-PyYAML
-
+Flask==2.3.3
+psutil==5.9.6
+ping3==4.0.4
+Werkzeug==2.3.7
+gunicorn==21.2.0

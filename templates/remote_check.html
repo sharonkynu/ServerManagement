@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Remote Connectivity Check{% endblock %}
+
+{% block content %}
+<div class="header-section">
+  <h1>Remote Connectivity Check</h1>
+  <p>Test your network endpoints using Ping, Telnet, or Traceroute</p>
+</div>
+
+<div class="remote-check-section">
+  <!-- Input Area -->
+  <div class="remote-input-card">
+    <div class="input-group">
+      <input type="text" id="single-target" placeholder="Enter IP address or hostname">
+      <input type="number" id="single-port" placeholder="Port (for Telnet)" min="1" max="65535">
+      <button class="btn btn-purple" id="btn-ping"><i class="fas fa-signal"></i> Ping</button>
+      <button class="btn btn-yellow" id="btn-telnet"><i class="fas fa-plug"></i> Telnet</button>
+      <button class="btn btn-blue" id="btn-traceroute"><i class="fas fa-route"></i> Traceroute</button>
+    </div>
+  </div>
+
+  <!-- Results Grid (Columns) -->
+  <div class="results-grid">
+    <!-- Ping -->
+    <div class="results-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+        <h3>Ping</h3>
+      </div>
+      <div class="card-content">
+        <div class="stats">
+          <div><b>Target:</b> <span id="ping-target-display">-</span></div>
+          <div><b>Status:</b> <span id="ping-status">-</span></div>
+        </div>
+        <div class="output-box" id="ping-output">
+          <div class="output-placeholder">
+            <i class="fas fa-info-circle"></i>
+            <p>Enter a target and click Ping</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Telnet -->
+    <div class="results-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-terminal"></i></div>
+        <h3>Telnet</h3>
+      </div>
+      <div class="card-content">
+        <div class="stats">
+          <div><b>Target:</b> <span id="telnet-target-display">-</span></div>
+          <div><b>Port:</b> <span id="telnet-port-display">-</span></div>
+          <div><b>Status:</b> <span id="telnet-status">-</span></div>
+        </div>
+        <div class="output-box" id="telnet-output">
+          <div class="output-placeholder">
+            <i class="fas fa-info-circle"></i>
+            <p>Enter a target & port, then click Telnet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Traceroute -->
+    <div class="results-card">
+      <div class="card-header">
+        <div class="card-icon"><i class="fas fa-route"></i></div>
+        <h3>Traceroute</h3>
+      </div>
+      <div class="card-content">
+        <div class="stats">
+          <div><b>Target:</b> <span id="traceroute-target-display">-</span></div>
+          <div><b>Status:</b> <span id="traceroute-status">-</span></div>
+        </div>
+        <pre class="output-box" id="traceroute-output">Enter a target and click Traceroute</pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Header */
+.header-section { text-align:center; margin-top:20px; }
+.header-section h1 { font-size:2.2em; font-weight:700; color:#fff; }
+.header-section p { color:#e5e7eb; font-size:1.1em; margin-top:6px; }
+
+/* Input Section */
+.remote-check-section { margin-top:30px; display:flex; flex-direction:column; align-items:center; }
+.remote-input-card { background:#fff; border-radius:18px; padding:20px 30px; width:900px; box-shadow:0 10px 20px rgba(0,0,0,0.1); }
+.input-group { display:flex; gap:10px; flex-wrap:wrap; }
+.input-group input { flex:1; padding:10px; border:1px solid #d1d5db; border-radius:10px; font-size:1em; transition: all 0.2s; }
+.input-group input:focus { border-color:#7e22ce; box-shadow:0 0 0 3px rgba(126,34,206,0.15); outline:none; }
+
+/* Buttons */
+.btn { display:flex; align-items:center; gap:8px; border:none; border-radius:10px; padding:10px 18px; color:#fff; cursor:pointer; font-weight:500; transition:all 0.3s; }
+.btn-purple { background: linear-gradient(90deg,#7e22ce,#a855f7); }
+.btn-yellow { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+.btn-blue { background: linear-gradient(90deg,#2563eb,#3b82f6); }
+.btn:hover { opacity:0.9; }
+
+/* Results Grid */
+.results-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:25px; margin-top:30px; width:100%; max-width:1200px; }
+.results-card { background:#fff; border-radius:20px; box-shadow:0 8px 20px rgba(0,0,0,0.08); padding:20px 25px; animation:fadeInUp 0.6s ease; }
+.card-header { display:flex; align-items:center; gap:10px; margin-bottom:15px; }
+.card-icon { color:#7e22ce; font-size:1.2em; }
+.card-header h3 { color:#7e22ce; font-weight:600; margin:0; }
+.stats { margin-bottom:10px; }
+.output-box { background:#f9fafb; border-radius:10px; padding:10px; max-height:220px; overflow-y:auto; font-family:monospace; font-size:0.95em; color:#333; }
+.output-placeholder { text-align:center; color:#888; }
+.output-placeholder i { font-size:1.2em; color:#7e22ce; }
+
+@keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    async function remoteCheck(type) {
+        const target = document.getElementById("single-target").value.trim();
+        const port = document.getElementById("single-port").value || 80;
+        if(!target) return alert("Enter target");
+
+        // Show target immediately
+        if(type==="ping") document.getElementById("ping-target-display").innerText = target;
+        if(type==="telnet") document.getElementById("telnet-target-display").innerText = target;
+        if(type==="traceroute") document.getElementById("traceroute-target-display").innerText = target;
+
+        // Show loading
+        if(type==="ping") { 
+            document.getElementById("ping-status").innerText="Checking...";
+            document.getElementById("ping-output").innerText="";
+        }
+        if(type==="telnet") {
+            document.getElementById("telnet-status").innerText="Checking...";
+            document.getElementById("telnet-output").innerText="";
+        }
+        if(type==="traceroute") {
+            document.getElementById("traceroute-status").innerText="Checking...";
+            document.getElementById("traceroute-output").innerText="...";
+        }
+
+        try {
+            const res = await fetch("/api/remote_check", {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({target,type,port})
+            });
+            const data = await res.json();
+
+            if(type==="ping") {
+                document.getElementById("ping-status").innerText = data.status;
+                document.getElementById("ping-output").innerText = data.message;
+            }
+            if(type==="telnet") {
+                document.getElementById("telnet-status").innerText = data.status;
+                document.getElementById("telnet-output").innerText = data.message;
+            }
+            if(type==="traceroute") {
+                document.getElementById("traceroute-status").innerText = data.status;
+                document.getElementById("traceroute-output").innerText = data.message;
+            }
+
+        } catch(err) {
+            console.error(err);
+            if(type==="ping") document.getElementById("ping-output").innerText = "Error: "+err;
+            if(type==="telnet") document.getElementById("telnet-output").innerText = "Error: "+err;
+            if(type==="traceroute") document.getElementById("traceroute-output").innerText = "Error: "+err;
+        }
+    }
+
+    document.getElementById("btn-ping").addEventListener("click", ()=>remoteCheck("ping"));
+    document.getElementById("btn-telnet").addEventListener("click", ()=>remoteCheck("telnet"));
+    document.getElementById("btn-traceroute").addEventListener("click", ()=>remoteCheck("traceroute"));
+});
+</script>
+{% endblock %}

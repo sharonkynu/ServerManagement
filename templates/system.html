@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}System Information - Server Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>System Information</h1>
+    <p>Real-time system metrics and hardware details</p>
+</div>
+
+<div class="system-grid">
+    <!-- System Overview Card -->
+    <div class="info-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-desktop"></i>
+            </div>
+            <h3>System Overview</h3>
+        </div>
+        <div class="card-content">
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Operating System</span>
+                    <span class="info-value" id="os-info">{{ system_info.os_info }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Serial Number</span>
+                    <span class="info-value" id="serial-number">{{ system_info.serial_number }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">MAC Address</span>
+                    <span class="info-value" id="mac-address">{{ system_info.mac_address }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">IP Address</span>
+                    <span class="info-value" id="ip-address">{{ system_info.ip }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CPU Information Card -->
+    <div class="info-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-microchip"></i>
+            </div>
+            <h3>CPU Information</h3>
+            <div class="refresh-indicator">
+                <i class="fas fa-sync-alt" id="cpu-refresh"></i>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="metric-display">
+                <div class="metric-value" id="cpu-percent">{{ system_info.cpu_percent }}%</div>
+                <div class="metric-label">Current Usage</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="cpu-progress" style="width: {{ system_info.cpu_percent }}%"></div>
+                </div>
+                <span class="progress-text" id="cpu-text">{{ system_info.cpu_percent }}%</span>
+            </div>
+            <div class="cpu-details">
+                <div class="detail-item">
+                    <span class="detail-label">CPU Count:</span>
+                    <span class="detail-value" id="cpu-count">{{ system_info.cpu_count if 'cpu_count' in system_info else 'N/A' }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">CPU Frequency:</span>
+                    <span class="detail-value" id="cpu-freq">{{ system_info.cpu_freq if 'cpu_freq' in system_info else 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Information Card -->
+    <div class="info-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-memory"></i>
+            </div>
+            <h3>Memory Information</h3>
+            <div class="refresh-indicator">
+                <i class="fas fa-sync-alt" id="memory-refresh"></i>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="metric-display">
+                <div class="metric-value" id="memory-percent">{{ system_info.memory_percent }}%</div>
+                <div class="metric-label">Memory Usage</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="memory-progress" style="width: {{ system_info.memory_percent }}%"></div>
+                </div>
+                <span class="progress-text" id="memory-text">{{ system_info.memory_percent }}%</span>
+            </div>
+            <div class="memory-details">
+                <div class="detail-item">
+                    <span class="detail-label">Total Memory:</span>
+                    <span class="detail-value" id="memory-total">{{ system_info.memory_total }} GB</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Used Memory:</span>
+                    <span class="detail-value" id="memory-used">{{ system_info.memory_used }} GB</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Available:</span>
+                    <span class="detail-value" id="memory-available">{{ "%.2f"|format(system_info.memory_total - system_info.memory_used) }} GB</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disk Information Card -->
+    <div class="info-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-hdd"></i>
+            </div>
+            <h3>Disk Information</h3>
+            <div class="refresh-indicator">
+                <i class="fas fa-sync-alt" id="disk-refresh"></i>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="disk-info" id="disk-info">
+                <div class="disk-item">
+                    <div class="disk-name">Root Partition</div>
+                    <div class="disk-usage">
+                        <div class="disk-bar">
+                            <div class="disk-fill" style="width: 45%"></div>
+                        </div>
+                        <span class="disk-text">45% (18.2 GB / 40.5 GB)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Interfaces Card -->
+    <div class="info-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-network-wired"></i>
+            </div>
+            <h3>Network Interfaces</h3>
+        </div>
+        <div class="card-content">
+            <div class="network-interfaces" id="network-interfaces">
+                <div class="interface-item">
+                    <div class="interface-name">
+                        <i class="fas fa-ethernet"></i>
+                        <span>eth0</span>
+                        <span class="interface-status active">Active</span>
+                    </div>
+                    <div class="interface-details">
+                        <div class="interface-detail">
+                            <span class="detail-label">IP Address:</span>
+                            <span class="detail-value">{{ system_info.ip }}</span>
+                        </div>
+                        <div class="interface-detail">
+                            <span class="detail-label">MAC Address:</span>
+                            <span class="detail-value">{{ system_info.mac_address }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Uptime Card -->
+    <div class="info-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3>System Uptime</h3>
+        </div>
+        <div class="card-content">
+            <div class="uptime-display">
+                <div class="uptime-value" id="uptime-value">{{ "%.0f"|format(system_info.uptime / 3600) }}h</div>
+                <div class="uptime-label">Hours</div>
+            </div>
+            <div class="uptime-details">
+                <div class="uptime-item">
+                    <span class="uptime-label">Boot Time:</span>
+                    <span class="uptime-value" id="boot-time">{{ system_info.boot_time if 'boot_time' in system_info else 'N/A' }}</span>
+                </div>
+                <div class="uptime-item">
+                    <span class="uptime-label">Current Time:</span>
+                    <span class="uptime-value" id="current-time">{{ system_info.current_time if 'current_time' in system_info else 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Real-time Chart -->
+<div class="system-chart">
+    <div class="chart-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-chart-area"></i>
+            </div>
+            <h3>Real-time Performance</h3>
+            <div class="chart-controls">
+                <button class="control-btn active" data-metric="cpu">
+                    <i class="fas fa-microchip"></i>
+                    CPU
+                </button>
+                <button class="control-btn" data-metric="memory">
+                    <i class="fas fa-memory"></i>
+                    Memory
+                </button>
+                <button class="control-btn" data-metric="both">
+                    <i class="fas fa-chart-line"></i>
+                    Both
+                </button>
+            </div>
+        </div>
+        <div class="card-content">
+            <canvas id="systemChart" width="400" height="300"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let systemChart;
+    let currentMetric = 'both';
+    
+    // Initialize chart
+    function initChart() {
+        const ctx = document.getElementById('systemChart').getContext('2d');
+        systemChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: currentMetric === 'cpu' || currentMetric === 'both' ? [{
+                    label: 'CPU %',
+                    data: [],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    hidden: currentMetric === 'memory'
+                }] : [],
+                ...(currentMetric === 'memory' || currentMetric === 'both' ? {
+                    ...(systemChart ? systemChart.data.datasets : []),
+                    [currentMetric === 'memory' ? 0 : 1]: {
+                        label: 'Memory %',
+                        data: [],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        hidden: currentMetric === 'cpu'
+                    }
+                } : {})
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    // Update system data
+    function updateSystemData() {
+        fetch('/api/system_info')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) return;
+                
+                // Update CPU
+                document.getElementById('cpu-percent').textContent = data.cpu_percent + '%';
+                document.getElementById('cpu-progress').style.width = data.cpu_percent + '%';
+                document.getElementById('cpu-text').textContent = data.cpu_percent + '%';
+                
+                // Update Memory
+                document.getElementById('memory-percent').textContent = data.memory_percent + '%';
+                document.getElementById('memory-progress').style.width = data.memory_percent + '%';
+                document.getElementById('memory-text').textContent = data.memory_percent + '%';
+                document.getElementById('memory-used').textContent = data.memory_used + ' GB';
+                document.getElementById('memory-total').textContent = data.memory_total + ' GB';
+                document.getElementById('memory-available').textContent = 
+                    (data.memory_total - data.memory_used).toFixed(2) + ' GB';
+                
+                // Update uptime
+                const uptimeHours = Math.floor(data.uptime / 3600);
+                document.getElementById('uptime-value').textContent = uptimeHours + 'h';
+                
+                // Update chart
+                if (systemChart) {
+                    const now = new Date().toLocaleTimeString();
+                    systemChart.data.labels.push(now);
+                    
+                    if (systemChart.data.datasets[0]) {
+                        systemChart.data.datasets[0].data.push(data.cpu_percent);
+                    }
+                    if (systemChart.data.datasets[1]) {
+                        systemChart.data.datasets[1].data.push(data.memory_percent);
+                    }
+                    
+                    // Keep only last 30 data points
+                    if (systemChart.data.labels.length > 30) {
+                        systemChart.data.labels.shift();
+                        systemChart.data.datasets.forEach(dataset => dataset.data.shift());
+                    }
+                    
+                    systemChart.update('none');
+                }
+                
+                // Animate refresh icons
+                animateRefreshIcons();
+            })
+            .catch(error => console.error('Error fetching system data:', error));
+    }
+
+    // Animate refresh icons
+    function animateRefreshIcons() {
+        const icons = ['cpu-refresh', 'memory-refresh', 'disk-refresh'];
+        icons.forEach(id => {
+            const icon = document.getElementById(id);
+            icon.style.transform = 'rotate(360deg)';
+            setTimeout(() => {
+                icon.style.transform = 'rotate(0deg)';
+            }, 500);
+        });
+    }
+
+    // Chart control buttons
+    document.querySelectorAll('.control-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentMetric = this.dataset.metric;
+            
+            // Reinitialize chart with new metric
+            if (systemChart) {
+                systemChart.destroy();
+            }
+            initChart();
+        });
+    });
+
+    // Initialize chart and start updates
+    initChart();
+    setInterval(updateSystemData, 2000); // Update every 2 seconds
+    updateSystemData(); // Initial load
+
+    // Animate cards on load
+    const cards = document.querySelectorAll('.info-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-in');
+    });
+});
+</script>
+{% endblock %}

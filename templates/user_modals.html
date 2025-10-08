@@ -1,0 +1,74 @@
+<!-- user_modals.html -->
+<!-- Delete Confirmation Modal -->
+<div class="modal" id="delete-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Confirm Delete</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete user <strong id="delete-username"></strong>?</p>
+      <p class="warning-text">This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="confirmDelete()">
+        <i class="fas fa-trash"></i> Delete User
+      </button>
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password Policy Modal -->
+<div class="modal" id="password-policy-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Password Policy</h3>
+      <button class="modal-close" onclick="closePasswordPolicyModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="policy-settings">
+        <div class="policy-item">
+          <label class="policy-label">
+            <input type="checkbox" id="require-uppercase" checked>
+            <span class="policy-text">Require uppercase letters</span>
+          </label>
+        </div>
+        <div class="policy-item">
+          <label class="policy-label">
+            <input type="checkbox" id="require-lowercase" checked>
+            <span class="policy-text">Require lowercase letters</span>
+          </label>
+        </div>
+        <div class="policy-item">
+          <label class="policy-label">
+            <input type="checkbox" id="require-numbers" checked>
+            <span class="policy-text">Require numbers</span>
+          </label>
+        </div>
+        <div class="policy-item">
+          <label class="policy-label">
+            <input type="checkbox" id="require-symbols">
+            <span class="policy-text">Require special characters</span>
+          </label>
+        </div>
+        <div class="policy-item">
+          <label class="policy-label">
+            <span class="policy-text">Minimum length:</span>
+            <input type="number" id="min-length" value="6" min="4" max="20">
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="savePasswordPolicy()">
+        <i class="fas fa-save"></i> Save Policy
+      </button>
+      <button class="btn btn-secondary" onclick="closePasswordPolicyModal()">Cancel</button>
+    </div>
+  </div>
+</div>

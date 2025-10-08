@@ -1,37 +1,391 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Network</title>
-  <link href="/static/css/style.css" rel="stylesheet">
-</head>
-<body>
-  <div class="container">
-    <div class="navbar"><div class="brand">Network</div><div><a class="btn btn-ghost" href="/dashboard">Back</a></div></div>
-    <div class="card" style="margin-top:12px;">
-      {% if message %}<div style="margin-bottom:8px;color:#a7f0c7">{{ message }}</div>{% endif %}
-      <form method="POST">
-        <div style="margin-bottom:8px;">
-          <select name="interface" class="form-control">
-            {% for i in interfaces %}
-              <option value="{{ i }}">{{ i }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div style="margin-bottom:8px;">
-          <select name="mode" class="form-control">
-            <option value="dhcp">DHCP</option>
-            <option value="manual">Manual</option>
-            <option value="disable">Disable</option>
-          </select>
-        </div>
-        <div style="margin-bottom:8px;">
-          <input class="form-control" name="ip" placeholder="192.168.1.10 (manual)">
-        </div>
-        <button class="btn btn-primary" type="submit">Apply</button>
-      </form>
-    </div>
-  </div>
-</body>
-</html>
+{% extends "base.html" %}
 
+{% block title %}Network Configuration - Server Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Network Configuration</h1>
+    <p>Manage network settings and view live status</p>
+</div>
+
+<div class="network-grid">
+    <!-- Network Configuration (Mode dropdown inline) -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+            <h3>Network Configuration</h3>
+        </div>
+        <div class="card-content">
+            <form id="network-config-form">
+                <div class="form-group">
+                    <label for="mode-select">Configuration Mode</label>
+                    <select id="mode-select" name="mode" style="width: 200px; display: inline-block;">
+                        <option value="disable">Disable</option>
+                        <option value="manual">Manual</option>
+                        <option value="dhcp">Automatic via DHCP</option>
+                    </select>
+                </div>
+
+                <div id="manual-config" class="manual-config" style="display:none;">
+                    <div class="form-group">
+                        <label for="ip-address">IP Address</label>
+                        <input type="text" id="ip-address" name="ip_address" placeholder="192.168.1.100">
+                    </div>
+                    <div class="form-group">
+                        <label for="netmask">Netmask</label>
+                        <input type="text" id="netmask" name="netmask" placeholder="255.255.255.0">
+                    </div>
+                    <div class="form-group">
+                        <label for="gateway">Gateway</label>
+                        <input type="text" id="gateway" name="gateway" placeholder="192.168.1.1">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Apply Network Config
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="reset-config">
+                        <i class="fas fa-undo"></i>
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DNS Configuration (separate block) -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+            <h3>DNS Configuration</h3>
+        </div>
+        <div class="card-content">
+            <form id="dns-config-form">
+                <div class="form-group">
+                    <label for="dns-mode">DNS Mode</label>
+                    <select id="dns-mode" name="dns_mode" style="width: 200px; display: inline-block;">
+                        <option value="manual">Manual</option>
+                        <option value="dhcp">DHCP</option>
+                        <option value="disable">Disable</option>
+                    </select>
+                </div>
+
+                <div id="dns-manual-config">
+                    <div class="form-group">
+                        <label for="dns-hostname">Host name</label>
+                        <input type="text" id="dns-hostname" name="dns_hostname" placeholder="server.local">
+                    </div>
+                    <div class="form-group">
+                        <label for="dns-primary">Name server</label>
+                        <input type="text" id="dns-primary" name="dns_primary" placeholder="8.8.8.8">
+                    </div>
+                    <div class="form-group">
+                        <label for="dns-secondary">Secondary name server</label>
+                        <input type="text" id="dns-secondary" name="dns_secondary" placeholder="8.8.4.4">
+                    </div>
+                    <div class="form-group">
+                        <label for="dns-domain">Domain name (DNS suffix)</label>
+                        <input type="text" id="dns-domain" name="dns_domain" placeholder="example.com">
+                    </div>
+                </div>
+
+                <div class="form-group readonly" id="dns-status-row" style="display:none;">
+                    <label>DNS Status</label>
+                    <div id="dns-status">-</div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Apply DNS Config
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="reset-dns">
+                        <i class="fas fa-undo"></i>
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Route Settings (separate block) -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-route"></i>
+            </div>
+            <h3>Route Settings</h3>
+        </div>
+        <div class="card-content">
+            <form id="routes-form">
+                <div id="routes-container"></div>
+                <button type="button" class="btn btn-secondary" id="add-route"><i class="fas fa-plus"></i> Add route</button>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Apply Routes
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="reset-routes">
+                        <i class="fas fa-undo"></i>
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Network Status (current system IP only) -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3>Network Status</h3>
+        </div>
+        <div class="card-content">
+            <div class="system-ip-row">
+                <div class="system-ip-label">Current System IP:</div>
+                <div class="system-ip-value" id="system-ip-value">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Network Tools removed per requirements; available in Remote Check page -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const networkForm = document.getElementById('network-config-form');
+    const dnsForm = document.getElementById('dns-config-form');
+    const routesForm = document.getElementById('routes-form');
+    const modeSelect = document.getElementById('mode-select');
+    const dnsModeSelect = document.getElementById('dns-mode');
+    const manualConfig = document.getElementById('manual-config');
+    const dnsManualConfig = document.getElementById('dns-manual-config');
+
+    function loadSystemIp() {
+        fetch('/api/system_info')
+            .then(r => r.json())
+            .then(data => {
+                const ipEl = document.getElementById('system-ip-value');
+                if (!data || data.error) {
+                    ipEl.textContent = 'Unavailable';
+                    return;
+                }
+                ipEl.textContent = data.ip || 'Unavailable';
+            })
+            .catch(() => {
+                const ipEl = document.getElementById('system-ip-value');
+                ipEl.textContent = 'Unavailable';
+            });
+    }
+
+    function toggleManualConfig() {
+        const selectedMode = modeSelect.value;
+        if (selectedMode === 'manual') {
+            manualConfig.style.display = 'block';
+            manualConfig.style.animation = 'slideDown 0.3s ease-out';
+        } else {
+            manualConfig.style.display = 'none';
+        }
+    }
+
+    function toggleDnsManualConfig() {
+        const selectedMode = dnsModeSelect.value;
+        if (selectedMode === 'manual') {
+            dnsManualConfig.style.display = 'block';
+            dnsManualConfig.style.animation = 'slideDown 0.3s ease-out';
+        } else {
+            dnsManualConfig.style.display = 'none';
+        }
+    }
+
+    // Network Configuration form
+    networkForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(networkForm);
+        const config = {
+            mode: formData.get('mode'),
+            ip_address: formData.get('ip_address'),
+            netmask: formData.get('netmask'),
+            gateway: formData.get('gateway')
+        };
+
+        const submitBtn = networkForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+        submitBtn.disabled = true;
+
+        fetch('/api/network_config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('Network configuration updated successfully!', 'success');
+                loadSystemIp();
+            } else {
+                showNotification(data.message || 'Failed to update configuration', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Network error occurred', 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    // DNS Configuration form
+    dnsForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(dnsForm);
+        const config = {
+            dns_mode: formData.get('dns_mode'),
+            hostname: formData.get('dns_hostname'),
+            name_server: formData.get('dns_primary'),
+            secondary_name_server: formData.get('dns_secondary'),
+            domain_suffix: formData.get('dns_domain')
+        };
+
+        const submitBtn = dnsForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+        submitBtn.disabled = true;
+
+        fetch('/api/dns_config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('DNS configuration updated successfully!', 'success');
+                document.getElementById('dns-status-row').style.display = 'block';
+                document.getElementById('dns-status').textContent = data.dns_status || 'applied';
+            } else {
+                showNotification(data.message || 'Failed to update DNS configuration', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Network error occurred', 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    // Routes form
+    routesForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const routes = Array.from(document.querySelectorAll('.route-row')).map(row => ({
+            destination: row.querySelector('.route-dest').value,
+            gateway: row.querySelector('.route-gw').value,
+            metric: row.querySelector('.route-metric').value
+        }));
+
+        const submitBtn = routesForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+        submitBtn.disabled = true;
+
+        fetch('/api/network_config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ routes: routes })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('Routes updated successfully!', 'success');
+            } else {
+                showNotification(data.message || 'Failed to update routes', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Network error occurred', 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    // Event listeners
+    modeSelect.addEventListener('change', toggleManualConfig);
+    dnsModeSelect.addEventListener('change', toggleDnsManualConfig);
+
+    document.getElementById('reset-config').addEventListener('click', function() {
+        networkForm.reset();
+        manualConfig.style.display = 'none';
+    });
+
+    document.getElementById('reset-dns').addEventListener('click', function() {
+        dnsForm.reset();
+        dnsManualConfig.style.display = 'none';
+        document.getElementById('dns-status-row').style.display = 'none';
+    });
+
+    document.getElementById('reset-routes').addEventListener('click', function() {
+        document.getElementById('routes-container').innerHTML = '';
+    });
+
+    document.getElementById('add-route').addEventListener('click', function() {
+        const container = document.getElementById('routes-container');
+        const row = document.createElement('div');
+        row.className = 'route-row';
+        row.innerHTML = `
+            <input type="text" class="route-dest" placeholder="Destination (e.g., 10.0.0.0/24)">
+            <input type="text" class="route-gw" placeholder="Gateway (e.g., 192.168.1.1)">
+            <input type="number" class="route-metric" placeholder="Metric" min="0">
+            <button type="button" class="btn btn-danger remove-route"><i class="fas fa-trash"></i></button>
+        `;
+        row.querySelector('.remove-route').addEventListener('click', () => row.remove());
+        container.appendChild(row);
+    });
+
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+            ${message}
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => { notification.classList.add('show'); }, 100);
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => { document.body.removeChild(notification); }, 300);
+        }, 3000);
+    }
+
+    // Initialize
+    loadSystemIp();
+    toggleManualConfig();
+    toggleDnsManualConfig();
+
+    const cards = document.querySelectorAll('.config-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-in');
+    });
+});
+</script>
+{% endblock %}

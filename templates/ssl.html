@@ -1,51 +1,227 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>SSL Management</title>
-  <link href="/static/css/style.css" rel="stylesheet">
-</head>
-<body>
-  <div class="container">
-    <div class="navbar">
-      <div class="brand">SSL</div>
-      <div class="nav-actions"><a class="btn btn-ghost" href="/dashboard">Back</a></div>
+{% extends "base.html" %}
+
+{% block title %}SSL Certificate Management{% endblock %}
+
+{% block content %}
+<div class="header-section">
+  <h1>SSL Certificate Management</h1>
+  <p>Manage your SSL certificates and restart Nginx to apply changes.</p>
+</div>
+
+<div class="ssl-container">
+  <div class="ssl-card">
+    <div class="ssl-header">
+      <i class="fas fa-lock"></i>
+      <h2>Certificate Upload</h2>
     </div>
 
-    <div class="card fade-in" style="margin-top:12px;">
-      <form method="POST" enctype="multipart/form-data">
-        <div style="margin-bottom:10px;">
-          <label class="small-muted">Upload certificate file (.pem)</label>
-          <input class="form-control" type="file" name="cert_file">
-        </div>
-        <div style="margin-bottom:10px;">
-          <label class="small-muted">Upload key file (.pem)</label>
-          <input class="form-control" type="file" name="key_file">
-        </div>
+    <p class="ssl-desc">
+      You can either upload your <b>cert.pem</b> and <b>privatekey.pem</b> files or paste their contents manually.  
+      After updating, click <b>Restart Nginx</b> to apply changes.
+    </p>
 
-        <div style="text-align:center;margin:8px 0">— OR —</div>
+    <form id="ssl-form" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="cert-file">Certificate File (cert.pem)</label>
+        <input type="file" id="cert-file" name="cert_file" accept=".pem" class="form-control">
+      </div>
 
-        <div style="margin-bottom:10px;">
-          <label class="small-muted">Paste certificate (PEM)</label>
-          <textarea class="form-control" name="cert_text" rows="6"></textarea>
-        </div>
-        <div style="margin-bottom:10px;">
-          <label class="small-muted">Paste key (PEM)</label>
-          <textarea class="form-control" name="key_text" rows="6"></textarea>
-        </div>
+      <div class="form-group">
+        <label for="key-file">Private Key File (privatekey.pem)</label>
+        <input type="file" id="key-file" name="key_file" accept=".pem" class="form-control">
+      </div>
 
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-primary" type="submit">Save SSL</button>
-        </div>
-      </form>
+      <div class="divider">OR</div>
 
-      {% with messages = get_flashed_messages(with_categories=false) %}
-        {% if messages %}
-          <div style="margin-top:12px;color:#a7f0c7;">{{ messages[0] }}</div>
-        {% endif %}
-      {% endwith %}
-    </div>
+      <div class="form-group">
+        <label for="cert-text">Paste Certificate Content</label>
+        <textarea id="cert-text" name="cert_text" rows="5"
+          placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"></textarea>
+      </div>
+
+      <div class—the_pmlss="form-group">
+        <label for="key-text">Paste Private Key Content</label>
+        <textarea id="key-text" name="key_text" rows="5"
+          placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"></textarea>
+      </div>
+
+      <div class="ssl-actions">
+        <button type="submit" class="btn btn-purple">
+          <i class="fas fa-upload"></i> Upload Certificate
+        </button>
+
+        <button type="button" class="btn btn-yellow" onclick="restartNginx()">
+          <i class="fas fa-sync-alt"></i> Restart Nginx
+        </button>
+      </div>
+    </form>
+  <div class="ssl-footer">
+    <p class="note">Please restart Nginx after uploading new SSL files to make them effective.</p>
   </div>
-</body>
-</html>
+  </div>
+</div>
 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ---- Header ---- */
+.header-section {
+  text-align: center;
+  margin-top: 25px;
+}
+.header-section h1 {
+  font-size: 2.2em;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.header-section p {
+  color: #e5e7eb;
+  font-size: 1.1em;
+}
+
+/* ---- SSL Card ---- */
+.ssl-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+.ssl-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  width: 850px;
+  padding: 25px 35px;
+}
+.ssl-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6b21a8;
+}
+.ssl-header h2 {
+  font-weight: 600;
+  font-size: 1.4em;
+  color: #6b21a8;
+}
+.ssl-desc {
+  margin: 10px 0 20px;
+  color: #555;
+  background: #f3e8ff;
+  border-left: 5px solid #9333ea;
+  padding: 10px 15px;
+  border-radius: 8px;
+}
+
+/* ---- Form ---- */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  font-weight: 600;
+  color: #7e22ce;
+  margin-bottom: 6px;
+  display: block;
+}
+input[type="file"], textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.95em;
+  background: #fafafa;
+  transition: all 0.3s;
+}
+input[type="file"]:hover, textarea:hover {
+  border-color: #a855f7;
+}
+textarea:focus, input[type="file"]:focus {
+  border-color: #7e22ce;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(168,85,247,0.2);
+}
+
+.divider {
+  text-align: center;
+  font-weight: 600;
+  color: #888;
+  margin: 15px 0;
+  position: relative;
+}
+.divider::before, .divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #ddd;
+}
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.ssl-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* ---- Buttons ---- */
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 1em;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-purple {
+  background: linear-gradient(90deg, #7e22ce, #a855f7);
+}
+.btn-purple:hover {
+  background: linear-gradient(90deg, #6b21a8, #9333ea);
+}
+.btn-yellow {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+.btn-yellow:hover {
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+}
+.ssl-footer {
+  text-align: center;
+  margin-top: 20px;
+}
+.ssl-footer .note {
+  color: #666;
+  font-size: 0.9em;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElement? =document.getElementById('ssl-form');
+if(document.getElement){document.getElement.addEventListener('submit',async(e)=>{
+  e.preventNormal = e.preventDefault();
+  const formData = new FormData(e.target);
+  const res = await fetch('/api/ssl_upload', {method:'POST',body:formData});
+  const data = await res.json();
+  alert(data.message || "SSL certificate uploaded successfully!");
+});}
+async function restartNginx(){
+  if(!confirm("Are you sure you want to restart Nginx?")) return;
+  const res = await fetch('/api/nginx_control',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'restart'})
+  });
+  const data = await res.json();
+  alert(data.message || "Nginx restarted successfully!");
+}
+</script>
+{% endblock %}

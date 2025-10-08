@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+
+{% block title %}DNS Configuration - Server Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>DNS Configuration</h1>
+    <p>Configure DNS servers and hostname settings</p>
+</div>
+
+<div class="dns-grid">
+    <!-- DNS Configuration -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+            <h3>DNS Settings</h3>
+        </div>
+        <div class="card-content">
+            <form id="dns-config-form">
+                <div class="form-group">
+                    <label for="hostname">Hostname</label>
+                    <input type="text" id="hostname" name="hostname" placeholder="server.example.com" value="">
+                    <small class="form-help">The hostname for this server</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="dns-servers">DNS Servers</label>
+                    <div class="dns-servers-list" id="dns-servers-list">
+                        <div class="dns-server-item">
+                            <input type="text" name="dns_server[]" placeholder="8.8.8.8" value="">
+                            <button type="button" class="remove-server" onclick="removeDnsServer(this)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="dns-server-item">
+                            <input type="text" name="dns_server[]" placeholder="8.8.4.4" value="">
+                            <button type="button" class="remove-server" onclick="removeDnsServer(this)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-dns-server" onclick="addDnsServer()">
+                        <i class="fas fa-plus"></i>
+                        Add DNS Server
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="dns-status">DNS Status</label>
+                    <div class="switch-container">
+                        <label class="switch">
+                            <input type="checkbox" id="dns-status" name="status" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="switch-label">Enable DNS Resolution</span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Apply DNS Configuration
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="test-dns">
+                        <i class="fas fa-search"></i>
+                        Test DNS
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="reset-dns">
+                        <i class="fas fa-undo"></i>
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Current DNS Status -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <h3>Current DNS Status</h3>
+        </div>
+        <div class="card-content">
+            <div class="dns-status-grid">
+                <div class="status-item">
+                    <div class="status-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="status-info">
+                        <span class="status-label">Hostname</span>
+                        <span class="status-value" id="current-hostname">Loading...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="status-info">
+                        <span class="status-label">DNS Servers</span>
+                        <span class="status-value" id="current-dns-servers">Loading...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-icon">
+                        <i class="fas fa-signal"></i>
+                    </div>
+                    <div class="status-info">
+                        <span class="status-label">DNS Resolution</span>
+                        <span class="status-value" id="dns-resolution-status">
+                            <span class="status-dot checking"></span>
+                            Checking...
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DNS Lookup Tools -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3>DNS Lookup Tools</h3>
+        </div>
+        <div class="card-content">
+            <div class="lookup-tools">
+                <div class="tool-group">
+                    <label for="lookup-domain">Domain Lookup</label>
+                    <div class="lookup-input">
+                        <input type="text" id="lookup-domain" placeholder="example.com">
+                        <button type="button" id="lookup-ip" class="lookup-btn">
+                            <i class="fas fa-search"></i>
+                            Lookup IP
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label for="reverse-lookup">Reverse Lookup</label>
+                    <div class="lookup-input">
+                        <input type="text" id="reverse-lookup" placeholder="8.8.8.8">
+                        <button type="button" id="reverse-lookup-btn" class="lookup-btn">
+                            <i class="fas fa-search"></i>
+                            Lookup Domain
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tool-output" id="lookup-output">
+                    <div class="output-header">
+                        <span>Lookup Results</span>
+                        <button class="clear-output" onclick="clearLookupOutput()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="output-content" id="lookup-content">
+                        Enter a domain or IP address to perform lookup.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DNS Cache -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <h3>DNS Cache</h3>
+        </div>
+        <div class="card-content">
+            <div class="cache-controls">
+                <button class="btn btn-primary" id="flush-cache">
+                    <i class="fas fa-trash"></i>
+                    Flush DNS Cache
+                </button>
+                <button class="btn btn-secondary" id="show-cache">
+                    <i class="fas fa-list"></i>
+                    Show Cache
+                </button>
+            </div>
+            <div class="cache-info">
+                <div class="cache-stat">
+                    <span class="cache-label">Cache Entries:</span>
+                    <span class="cache-value" id="cache-entries">0</span>
+                </div>
+                <div class="cache-stat">
+                    <span class="cache-label">Cache Hits:</span>
+                    <span class="cache-value" id="cache-hits">0</span>
+                </div>
+                <div class="cache-stat">
+                    <span class="cache-label">Cache Misses:</span>
+                    <span class="cache-value" id="cache-misses">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('dns-config-form');
+    const testDnsBtn = document.getElementById('test-dns');
+    const resetDnsBtn = document.getElementById('reset-dns');
+    const lookupIpBtn = document.getElementById('lookup-ip');
+    const reverseLookupBtn = document.getElementById('reverse-lookup-btn');
+    const flushCacheBtn = document.getElementById('flush-cache');
+    const showCacheBtn = document.getElementById('show-cache');
+
+    // Load current DNS configuration
+    function loadCurrentConfig() {
+        // Mock current configuration - in real implementation, fetch from backend
+        document.getElementById('current-hostname').textContent = 'server.local';
+        document.getElementById('current-dns-servers').textContent = '8.8.8.8, 8.8.4.4';
+        
+        // Check DNS resolution
+        checkDnsResolution();
+    }
+
+    // Check DNS resolution status
+    function checkDnsResolution() {
+        const statusElement = document.getElementById('dns-resolution-status');
+        const statusDot = statusElement.querySelector('.status-dot');
+        
+        statusDot.className = 'status-dot checking';
+        statusElement.innerHTML = '<span class="status-dot checking"></span>Checking...';
+        
+        // Mock DNS check - in real implementation, perform actual DNS lookup
+        setTimeout(() => {
+            statusDot.className = 'status-dot online';
+            statusElement.innerHTML = '<span class="status-dot online"></span>Working';
+        }, 2000);
+    }
+
+    // Add DNS server input
+    function addDnsServer() {
+        const container = document.getElementById('dns-servers-list');
+        const newServer = document.createElement('div');
+        newServer.className = 'dns-server-item';
+        newServer.innerHTML = `
+            <input type="text" name="dns_server[]" placeholder="DNS Server IP" value="">
+            <button type="button" class="remove-server" onclick="removeDnsServer(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        container.appendChild(newServer);
+    }
+
+    // Remove DNS server input
+    function removeDnsServer(button) {
+        const container = document.getElementById('dns-servers-list');
+        if (container.children.length > 1) {
+            button.parentElement.remove();
+        }
+    }
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const dnsServers = Array.from(formData.getAll('dns_server[]')).filter(server => server.trim() !== '');
+        
+        const config = {
+            hostname: formData.get('hostname'),
+            dns_server: dnsServers,
+            status: formData.get('status') === 'on'
+        };
+
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+        submitBtn.disabled = true;
+
+        fetch('/api/dns_config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(config)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('DNS configuration updated successfully!', 'success');
+                loadCurrentConfig(); // Reload current config
+            } else {
+                showNotification(data.message || 'Failed to update DNS configuration', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Network error occurred', 'error');
+        })
+        .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+
+    // Test DNS
+    testDnsBtn.addEventListener('click', function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        btn.disabled = true;
+
+        // Mock DNS test - in real implementation, perform actual DNS test
+        setTimeout(() => {
+            showNotification('DNS test completed successfully!', 'success');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 3000);
+    });
+
+    // Reset form
+    resetDnsBtn.addEventListener('click', function() {
+        form.reset();
+        // Reset to default DNS servers
+        const dnsServersList = document.getElementById('dns-servers-list');
+        dnsServersList.innerHTML = `
+            <div class="dns-server-item">
+                <input type="text" name="dns_server[]" placeholder="8.8.8.8" value="">
+                <button type="button" class="remove-server" onclick="removeDnsServer(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dns-server-item">
+                <input type="text" name="dns_server[]" placeholder="8.8.4.4" value="">
+                <button type="button" class="remove-server" onclick="removeDnsServer(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+    });
+
+    // DNS lookup tools
+    lookupIpBtn.addEventListener('click', function() {
+        const domain = document.getElementById('lookup-domain').value.trim();
+        if (!domain) {
+            showNotification('Please enter a domain name', 'error');
+            return;
+        }
+
+        performLookup('domain', domain);
+    });
+
+    reverseLookupBtn.addEventListener('click', function() {
+        const ip = document.getElementById('reverse-lookup').value.trim();
+        if (!ip) {
+            showNotification('Please enter an IP address', 'error');
+            return;
+        }
+
+        performLookup('reverse', ip);
+    });
+
+    function performLookup(type, value) {
+        const outputContent = document.getElementById('lookup-content');
+        outputContent.innerHTML = '<div class="loading-output"><i class="fas fa-spinner fa-spin"></i> Performing lookup...</div>';
+
+        // Mock lookup results - in real implementation, call backend API
+        setTimeout(() => {
+            let result = '';
+            if (type === 'domain') {
+                result = `DNS Lookup for ${value}:
+Type: A Record
+Address: 93.184.216.34
+TTL: 86400
+Authority: a.gtld-servers.net
+
+Additional Records:
+Type: AAAA Record
+Address: 2606:2800:220:1:248:1893:25c8:1946
+TTL: 86400`;
+            } else {
+                result = `Reverse DNS Lookup for ${value}:
+Domain: one.one.one.one
+TTL: 3600`;
+            }
+            outputContent.innerHTML = `<pre>${result}</pre>`;
+        }, 2000);
+    }
+
+    function clearLookupOutput() {
+        document.getElementById('lookup-content').innerHTML = 'Enter a domain or IP address to perform lookup.';
+    }
+
+    // Cache management
+    flushCacheBtn.addEventListener('click', function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Flushing...';
+        btn.disabled = true;
+
+        // Mock cache flush - in real implementation, call backend API
+        setTimeout(() => {
+            showNotification('DNS cache flushed successfully!', 'success');
+            updateCacheStats();
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+    });
+
+    showCacheBtn.addEventListener('click', function() {
+        const outputContent = document.getElementById('lookup-content');
+        outputContent.innerHTML = '<div class="loading-output"><i class="fas fa-spinner fa-spin"></i> Loading cache...</div>';
+
+        // Mock cache display - in real implementation, fetch from backend
+        setTimeout(() => {
+            const cacheContent = `DNS Cache Contents:
+example.com -> 93.184.216.34 (TTL: 7200)
+google.com -> 172.217.164.110 (TTL: 3600)
+github.com -> 140.82.112.4 (TTL: 1800)
+stackoverflow.com -> 151.101.1.69 (TTL: 3600)`;
+            outputContent.innerHTML = `<pre>${cacheContent}</pre>`;
+        }, 1500);
+    });
+
+    function updateCacheStats() {
+        // Mock cache statistics - in real implementation, fetch from backend
+        document.getElementById('cache-entries').textContent = '0';
+        document.getElementById('cache-hits').textContent = '0';
+        document.getElementById('cache-misses').textContent = '0';
+    }
+
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+            ${message}
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+
+    // Initialize
+    loadCurrentConfig();
+    updateCacheStats();
+
+    // Animate cards on load
+    const cards = document.querySelectorAll('.config-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate-in');
+    });
+});
+
+// Make functions globally available
+window.addDnsServer = function() {
+    const container = document.getElementById('dns-servers-list');
+    const newServer = document.createElement('div');
+    newServer.className = 'dns-server-item';
+    newServer.innerHTML = `
+        <input type="text" name="dns_server[]" placeholder="DNS Server IP" value="">
+        <button type="button" class="remove-server" onclick="removeDnsServer(this)">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(newServer);
+};
+
+window.removeDnsServer = function(button) {
+    const container = document.getElementById('dns-servers-list');
+    if (container.children.length > 1) {
+        button.parentElement.remove();
+    }
+};
+
+window.clearLookupOutput = function() {
+    document.getElementById('lookup-content').innerHTML = 'Enter a domain or IP address to perform lookup.';
+};
+</script>
+{% endblock %}

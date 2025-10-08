@@ -1,12 +1,17 @@
-[
-  {
-    "username": "admin",
+{
+  "admin": {
     "password": "admin123",
-    "role": "admin"
+    "role": "admin",
+    "created": "2024-01-01T00:00:00"
   },
-  {
-    "username": "user",
+  "user1": {
     "password": "user123",
-    "role": "user"
+    "role": "user",
+    "created": "2024-01-10T10:30:00"
+  },
+  "ajesh": {
+    "password": "ajesh@123",
+    "role": "user",
+    "created": "2025-10-08T12:47:00.426859"
   }
-]
+}

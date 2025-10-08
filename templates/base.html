@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Server Management{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if session.user %}
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-server"></i>
+            <span>Server Management</span>
+        </div>
+        <div class="nav-menu">
+            <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('system_page') }}" class="nav-link {% if request.endpoint == 'system_page' %}active{% endif %}">
+                <i class="fas fa-microchip"></i>
+                <span>System</span>
+            </a>
+            <a href="{{ url_for('network_page') }}" class="nav-link {% if request.endpoint == 'network_page' %}active{% endif %}">
+                <i class="fas fa-network-wired"></i>
+                <span>Network</span>
+            </a>
+
+            <a href="{{ url_for('remote_check_page') }}" class="nav-link {% if request.endpoint == 'remote_check_page' %}active{% endif %}">
+                <i class="fas fa-search"></i>
+                <span>Remote Check</span>
+            </a>
+            <a href="{{ url_for('ports_page') }}" class="nav-link {% if request.endpoint == 'ports_page' %}active{% endif %}">
+                <i class="fas fa-plug"></i>
+                <span>Ports</span>
+            </a>
+            {% if session.role == 'admin' %}
+            <a href="{{ url_for('users_page') }}" class="nav-link {% if request.endpoint == 'users_page' %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('ssl_page') }}" class="nav-link {% if request.endpoint == 'ssl_page' %}active{% endif %}">
+                <i class="fas fa-shield-alt"></i>
+                <span>SSL</span>
+            </a>
+        </div>
+        <div class="nav-user">
+            <span class="user-info">
+                <i class="fas fa-user"></i>
+                {{ session.user }} ({{ session.role }})
+            </span>
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'error' else 'info-circle' }}"></i>
+                            {{ message }}
+                            <button class="flash-close" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
