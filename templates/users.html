@@ -18,12 +18,10 @@
             <h3>System Users</h3>
             <div class="card-controls">
                 <button class="control-btn" id="refresh-users">
-                    <i class="fas fa-sync-alt"></i>
-                    Refresh
+                    <i class="fas fa-sync-alt"></i> Refresh
                 </button>
                 <button class="control-btn btn-primary" id="add-user-btn">
-                    <i class="fas fa-plus"></i>
-                    Add User
+                    <i class="fas fa-plus"></i> Add User
                 </button>
             </div>
         </div>
@@ -36,7 +34,7 @@
                     <div class="table-cell">Actions</div>
                 </div>
                 <div class="table-body" id="users-table-body">
-                    <!-- Users will be populated by JavaScript -->
+                    <!-- Users will be populated by JS -->
                 </div>
             </div>
         </div>
@@ -53,7 +51,7 @@
         <div class="card-content">
             <form id="user-form">
                 <input type="hidden" id="edit-username" name="edit_username">
-                
+
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required>
@@ -79,9 +77,9 @@
                 <div class="form-group">
                     <label for="role">Role</label>
                     <select id="role" name="role" required>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
                     <small class="form-help">Admin users can manage other users</small>
                 </div>
 
@@ -91,8 +89,7 @@
                         <span id="submit-text">Create User</span>
                     </button>
                     <button type="button" class="btn btn-secondary" id="cancel-form">
-                        <i class="fas fa-times"></i>
-                        Cancel
+                        <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
             </form>
@@ -110,36 +107,28 @@
         <div class="card-content">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
                     <div class="stat-info">
                         <span class="stat-label">Total Users</span>
                         <span class="stat-value" id="total-users">0</span>
                     </div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
+                    <div class="stat-icon"><i class="fas fa-user-shield"></i></div>
                     <div class="stat-info">
                         <span class="stat-label">Admin Users</span>
                         <span class="stat-value" id="admin-users">0</span>
                     </div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="fas fa-user"></i>
-                    </div>
+                    <div class="stat-icon"><i class="fas fa-user"></i></div>
                     <div class="stat-info">
                         <span class="stat-label">Regular Users</span>
                         <span class="stat-value" id="regular-users">0</span>
                     </div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
                     <div class="stat-info">
                         <span class="stat-label">Last Login</span>
                         <span class="stat-value" id="last-login">-</span>
@@ -152,9 +141,7 @@
     <!-- Security Settings -->
     <div class="security-card">
         <div class="card-header">
-            <div class="card-icon">
-                <i class="fas fa-shield-alt"></i>
-            </div>
+            <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
             <h3>Security Settings</h3>
         </div>
         <div class="card-content">
@@ -166,8 +153,7 @@
                     </div>
                     <div class="setting-controls">
                         <button class="btn btn-secondary" onclick="configurePasswordPolicy()">
-                            <i class="fas fa-cog"></i>
-                            Configure
+                            <i class="fas fa-cog"></i> Configure
                         </button>
                     </div>
                 </div>
@@ -197,12 +183,10 @@
             </div>
             <div class="security-actions">
                 <button class="btn btn-primary" onclick="saveSecuritySettings()">
-                    <i class="fas fa-save"></i>
-                    Save Settings
+                    <i class="fas fa-save"></i> Save Settings
                 </button>
                 <button class="btn btn-secondary" onclick="resetSecuritySettings()">
-                    <i class="fas fa-undo"></i>
-                    Reset
+                    <i class="fas fa-undo"></i> Reset
                 </button>
             </div>
         </div>
@@ -214,19 +198,14 @@
     <div class="modal-content">
         <div class="modal-header">
             <h3>Confirm Delete</h3>
-            <button class="modal-close" onclick="closeDeleteModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
             <p>Are you sure you want to delete user <strong id="delete-username"></strong>?</p>
             <p class="warning-text">This action cannot be undone.</p>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-danger" onclick="confirmDelete()">
-                <i class="fas fa-trash"></i>
-                Delete User
-            </button>
+            <button class="btn btn-danger" onclick="confirmDelete()"><i class="fas fa-trash"></i> Delete User</button>
             <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
         </div>
     </div>
@@ -237,390 +216,278 @@
     <div class="modal-content">
         <div class="modal-header">
             <h3>Password Policy</h3>
-            <button class="modal-close" onclick="closePasswordPolicyModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="modal-close" onclick="closePasswordPolicyModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
             <div class="policy-settings">
                 <div class="policy-item">
-                    <label class="policy-label">
-                        <input type="checkbox" id="require-uppercase" checked>
-                        <span class="policy-text">Require uppercase letters</span>
-                    </label>
+                    <label><input type="checkbox" id="require-uppercase" checked> Require uppercase letters</label>
                 </div>
                 <div class="policy-item">
-                    <label class="policy-label">
-                        <input type="checkbox" id="require-lowercase" checked>
-                        <span class="policy-text">Require lowercase letters</span>
-                    </label>
+                    <label><input type="checkbox" id="require-lowercase" checked> Require lowercase letters</label>
                 </div>
                 <div class="policy-item">
-                    <label class="policy-label">
-                        <input type="checkbox" id="require-numbers" checked>
-                        <span class="policy-text">Require numbers</span>
-                    </label>
+                    <label><input type="checkbox" id="require-numbers" checked> Require numbers</label>
                 </div>
                 <div class="policy-item">
-                    <label class="policy-label">
-                        <input type="checkbox" id="require-symbols">
-                        <span class="policy-text">Require special characters</span>
-                    </label>
+                    <label><input type="checkbox" id="require-symbols"> Require special characters</label>
                 </div>
                 <div class="policy-item">
-                    <label class="policy-label">
-                        <span class="policy-text">Minimum length:</span>
-                        <input type="number" id="min-length" value="6" min="4" max="20">
-                    </label>
+                    <label>Minimum length: <input type="number" id="min-length" value="6" min="4" max="20"></label>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-primary" onclick="savePasswordPolicy()">
-                <i class="fas fa-save"></i>
-                Save Policy
-            </button>
+            <button class="btn btn-primary" onclick="savePasswordPolicy()"><i class="fas fa-save"></i> Save Policy</button>
             <button class="btn btn-secondary" onclick="closePasswordPolicyModal()">Cancel</button>
         </div>
     </div>
-  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let currentUsers = {};
-    let deleteUsername = '';
+/* ------------------- Global Variables ------------------- */
+let currentUsers = {};
+let deleteUsername = '';
 
-    // Load users on page load
+/* ------------------- Utility Functions ------------------- */
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-triangle'}"></i> ${message}`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 100);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
+}
+
+/* ------------------- User Table & Stats ------------------- */
+function updateUsersTable() {
+    const tableBody = document.getElementById('users-table-body');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+    Object.keys(currentUsers).forEach(username => {
+        const user = currentUsers[username];
+        const row = document.createElement('div');
+        row.className = 'table-row';
+        row.innerHTML = `
+            <div class="table-cell">
+                <div class="user-info">
+                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                    <div class="user-details">
+                        <div class="user-name">${username}</div>
+                        <div class="user-role-badge role-${user.role}">${user.role}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-cell"><span class="role-badge role-${user.role}">${user.role}</span></div>
+            <div class="table-cell"><span class="created-date">${formatDate(user.created)}</span></div>
+            <div class="table-cell">
+                <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="editUser('${username}')" title="Edit User">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete-btn" onclick="deleteUser('${username}')" title="Delete User">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function updateUserStatistics() {
+    const totalUsers = Object.keys(currentUsers).length;
+    const adminUsers = Object.values(currentUsers).filter(u=>u.role==='admin').length;
+    const regularUsers = totalUsers - adminUsers;
+
+    document.getElementById('total-users').textContent = totalUsers;
+    document.getElementById('admin-users').textContent = adminUsers;
+    document.getElementById('regular-users').textContent = regularUsers;
+    document.getElementById('last-login').textContent = '2 minutes ago'; // Mock
+}
+
+/* ------------------- Load Users ------------------- */
+function loadUsers() {
+    fetch('/api/users')
+    .then(r => r.json())
+    .then(data => {
+        if(data.status==='success'){
+            currentUsers = data.users||{};
+            updateUsersTable();
+            updateUserStatistics();
+        } else showNotification(data.error || 'Failed to load users','error');
+    })
+    .catch(() => showNotification('Network error occurred','error'));
+}
+
+/* ------------------- Form Handling ------------------- */
+function showAddUserForm() {
+    const form = document.getElementById('user-form');
+    if(!form) return;
+    document.getElementById('form-title').textContent='Add New User';
+    document.getElementById('submit-text').textContent='Create User';
+    document.getElementById('edit-username').value='';
+    form.reset();
+    document.getElementById('user-form-card').style.display='block';
+}
+
+function hideUserForm() {
+    document.getElementById('user-form-card').style.display='none';
+    const usernameInput = document.getElementById('username');
+    if(usernameInput) usernameInput.readOnly=false;
+}
+
+function submitUserForm() {
+    const form = document.getElementById('user-form');
+    if(!form) return;
+    const fd = new FormData(form);
+    const username = fd.get('username');
+    const password = fd.get('password');
+    const confirmPassword = fd.get('confirm_password');
+    const role = fd.get('role');
+    const editUsername = fd.get('edit_username');
+
+    if(password!==confirmPassword){
+        showNotification('Passwords do not match!','error'); return;
+    }
+    if(password.length<6){
+        showNotification('Password must be at least 6 characters!','error'); return;
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const origText = submitBtn.innerHTML;
+    submitBtn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Saving...';
+    submitBtn.disabled=true;
+
+    const userData={username,password,role};
+    const url = editUsername?`/api/users/${editUsername}`:'/api/users';
+    const method = editUsername?'PUT':'POST';
+
+    fetch(url,{
+        method,
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(userData)
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        if(data.status==='success'){
+            showNotification(data.message,'success');
+            loadUsers();
+            hideUserForm();
+        } else showNotification(data.message||'Failed to save user','error');
+    })
+    .catch(()=>showNotification('Network error occurred','error'))
+    .finally(()=>{
+        submitBtn.innerHTML=origText;
+        submitBtn.disabled=false;
+    });
+}
+
+/* ------------------- Edit/Delete ------------------- */
+function editUser(username){
+    const user = currentUsers[username];
+    if(!user) return;
+    showAddUserForm();
+    document.getElementById('form-title').textContent='Edit User';
+    document.getElementById('submit-text').textContent='Update User';
+    document.getElementById('edit-username').value=username;
+    document.getElementById('username').value=username;
+    document.getElementById('username').readOnly=true;
+    document.getElementById('password').value=user.password;
+    document.getElementById('confirm-password').value=user.password;
+    document.getElementById('role').value=user.role;
+}
+
+function deleteUser(username){
+    deleteUsername=username;
+    const el=document.getElementById('delete-username');
+    if(el) el.textContent=username;
+    document.getElementById('delete-modal').style.display='block';
+}
+
+function confirmDelete(){
+    const btn=document.querySelector('#delete-modal .btn-danger');
+    const origText=btn.innerHTML;
+    btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Deleting...';
+    btn.disabled=true;
+
+    fetch(`/api/users/${deleteUsername}`,{method:'DELETE'})
+    .then(r=>r.json())
+    .then(data=>{
+        if(data.status==='success'){
+            showNotification(data.message,'success');
+            loadUsers();
+            closeDeleteModal();
+        } else showNotification(data.message||'Failed to delete user','error');
+    })
+    .catch(()=>showNotification('Network error occurred','error'))
+    .finally(()=>{btn.innerHTML=origText; btn.disabled=false;});
+}
+
+function closeDeleteModal(){
+    document.getElementById('delete-modal').style.display='none';
+    deleteUsername='';
+}
+
+/* ------------------- Misc ------------------- */
+function togglePassword(){
+    const input=document.getElementById('password');
+    const icon=document.querySelector('.password-toggle i');
+    if(input.type==='password'){input.type='text'; icon.classList.replace('fa-eye','fa-eye-slash');}
+    else{input.type='password'; icon.classList.replace('fa-eye-slash','fa-eye');}
+}
+
+function configurePasswordPolicy(){document.getElementById('password-policy-modal').style.display='block';}
+function closePasswordPolicyModal(){document.getElementById('password-policy-modal').style.display='none';}
+function savePasswordPolicy(){
+    showNotification('Password policy updated successfully!','success');
+    closePasswordPolicyModal();
+}
+function saveSecuritySettings(){showNotification('Security settings updated successfully!','success');}
+function resetSecuritySettings(){
+    document.getElementById('session-timeout').value='60';
+    document.getElementById('max-attempts').value='5';
+    showNotification('Security settings reset to defaults','info');
+}
+
+/* ------------------- DOMContentLoaded ------------------- */
+document.addEventListener('DOMContentLoaded',function(){
     loadUsers();
 
-    // Form handling
-    document.getElementById('user-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        submitUserForm();
-    });
+    const userForm = document.getElementById('user-form');
+    if(userForm) userForm.addEventListener('submit', e=>{e.preventDefault(); submitUserForm();});
 
-    document.getElementById('cancel-form').addEventListener('click', function() {
-        hideUserForm();
-    });
+    const cancelBtn = document.getElementById('cancel-form');
+    if(cancelBtn) cancelBtn.addEventListener('click', hideUserForm);
 
-    document.getElementById('add-user-btn').addEventListener('click', function() {
-        showAddUserForm();
-    });
+    const addBtn = document.getElementById('add-user-btn');
+    if(addBtn) addBtn.addEventListener('click', showAddUserForm);
 
-    document.getElementById('refresh-users').addEventListener('click', function() {
-        loadUsers();
-    });
+    const refreshBtn = document.getElementById('refresh-users');
+    if(refreshBtn) refreshBtn.addEventListener('click', loadUsers);
 
-    function loadUsers() {
-        fetch('/api/users')
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    currentUsers = data.users || {};
-                    updateUsersTable();
-                    updateUserStatistics();
-                } else {
-                    showNotification(data.error || 'Failed to load users', 'error');
-                }
-            })
-            .catch(() => showNotification('Network error occurred', 'error'));
-    }
-
-    function updateUsersTable() {
-        const tableBody = document.getElementById('users-table-body');
-        tableBody.innerHTML = '';
-
-        Object.keys(currentUsers).forEach(username => {
-            const user = currentUsers[username];
-            const row = document.createElement('div');
-            row.className = 'table-row';
-            row.innerHTML = `
-                <div class="table-cell">
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-details">
-                            <div class="user-name">${username}</div>
-                            <div class="user-role-badge role-${user.role}">${user.role}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="table-cell">
-                    <span class="role-badge role-${user.role}">${user.role}</span>
-                </div>
-                <div class="table-cell">
-                    <span class="created-date">${formatDate(user.created)}</span>
-                </div>
-                <div class="table-cell">
-                    <div class="action-buttons">
-                        <button class="action-btn edit-btn" onclick="editUser('${username}')" title="Edit User">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn" onclick="deleteUser('${username}')" title="Delete User">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
-
-    function updateUserStatistics() {
-        const totalUsers = Object.keys(currentUsers).length;
-        const adminUsers = Object.values(currentUsers).filter(user => user.role === 'admin').length;
-        const regularUsers = totalUsers - adminUsers;
-
-        document.getElementById('total-users').textContent = totalUsers;
-        document.getElementById('admin-users').textContent = adminUsers;
-        document.getElementById('regular-users').textContent = regularUsers;
-        document.getElementById('last-login').textContent = '2 minutes ago'; // Mock data
-    }
-
-    function showAddUserForm() {
-        document.getElementById('form-title').textContent = 'Add New User';
-        document.getElementById('submit-text').textContent = 'Create User';
-        document.getElementById('edit-username').value = '';
-        document.getElementById('user-form').reset();
-        document.getElementById('user-form-card').style.display = 'block';
-        document.getElementById('user-form-card').style.animation = 'slideInRight 0.3s ease-out';
-    }
-
-    function editUser(username) {
-        const user = currentUsers[username];
-        document.getElementById('form-title').textContent = 'Edit User';
-        document.getElementById('submit-text').textContent = 'Update User';
-        document.getElementById('edit-username').value = username;
-        document.getElementById('username').value = username;
-        document.getElementById('username').readOnly = true;
-        document.getElementById('password').value = user.password;
-        document.getElementById('confirm-password').value = user.password;
-        document.getElementById('role').value = user.role;
-        document.getElementById('user-form-card').style.display = 'block';
-        document.getElementById('user-form-card').style.animation = 'slideInRight 0.3s ease-out';
-    }
-
-    function hideUserForm() {
-        document.getElementById('user-form-card').style.display = 'none';
-        document.getElementById('username').readOnly = false;
-    }
-
-    function submitUserForm() {
-        const formData = new FormData(document.getElementById('user-form'));
-        const username = formData.get('username');
-        const password = formData.get('password');
-        const confirmPassword = formData.get('confirm_password');
-        const role = formData.get('role');
-        const editUsername = formData.get('edit_username');
-
-        // Validation
-        if (password !== confirmPassword) {
-            showNotification('Passwords do not match!', 'error');
-            return;
-        }
-
-        if (password.length < 6) {
-            showNotification('Password must be at least 6 characters long!', 'error');
-            return;
-        }
-
-        const submitBtn = document.querySelector('#user-form button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        submitBtn.disabled = true;
-
-        const userData = {
-            username: username,
-            password: password,
-            role: role
-        };
-
-        const url = editUsername ? `/api/users/${editUsername}` : '/api/users';
-        const method = editUsername ? 'PUT' : 'POST';
-
-        fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(userData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showNotification(data.message, 'success');
-                loadUsers();
-                hideUserForm();
-            } else {
-                showNotification(data.message || 'Failed to save user', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Network error occurred', 'error');
-        })
-        .finally(() => {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        });
-    }
-
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-    }
-
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
-            ${message}
-        `;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 100);
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 3000);
-    }
-
-    // Animate cards on load
     const cards = document.querySelectorAll('.users-card, .stats-card, .security-card');
-    cards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
+    cards.forEach((card,i)=>{
+        card.style.animationDelay=`${i*0.1}s`;
         card.classList.add('animate-in');
     });
 });
 
-// Global functions
-function editUser(username) {
-    const user = currentUsers[username];
-    document.getElementById('form-title').textContent = 'Edit User';
-    document.getElementById('submit-text').textContent = 'Update User';
-    document.getElementById('edit-username').value = username;
-    document.getElementById('username').value = username;
-    document.getElementById('username').readOnly = true;
-    document.getElementById('password').value = user.password;
-    document.getElementById('confirm-password').value = user.password;
-    document.getElementById('role').value = user.role;
-    document.getElementById('user-form-card').style.display = 'block';
-    document.getElementById('user-form-card').style.animation = 'slideInRight 0.3s ease-out';
-}
-
-function deleteUser(username) {
-    deleteUsername = username;
-    document.getElementById('delete-username').textContent = username;
-    document.getElementById('delete-modal').style.display = 'block';
-}
-
-function confirmDelete() {
-    const submitBtn = document.querySelector('#delete-modal .btn-danger');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
-    submitBtn.disabled = true;
-
-    fetch(`/api/users/${deleteUsername}`, {
-        method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            showNotification(data.message, 'success');
-            loadUsers();
-            closeDeleteModal();
-        } else {
-            showNotification(data.message || 'Failed to delete user', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Network error occurred', 'error');
-    })
-    .finally(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
-}
-
-function closeDeleteModal() {
-    document.getElementById('delete-modal').style.display = 'none';
-    deleteUsername = '';
-}
-
-function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const toggleBtn = document.querySelector('.password-toggle i');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleBtn.classList.remove('fa-eye');
-        toggleBtn.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        toggleBtn.classList.remove('fa-eye-slash');
-        toggleBtn.classList.add('fa-eye');
-    }
-}
-
-function configurePasswordPolicy() {
-    document.getElementById('password-policy-modal').style.display = 'block';
-}
-
-function closePasswordPolicyModal() {
-    document.getElementById('password-policy-modal').style.display = 'none';
-}
-
-function savePasswordPolicy() {
-    const policy = {
-        requireUppercase: document.getElementById('require-uppercase').checked,
-        requireLowercase: document.getElementById('require-lowercase').checked,
-        requireNumbers: document.getElementById('require-numbers').checked,
-        requireSymbols: document.getElementById('require-symbols').checked,
-        minLength: parseInt(document.getElementById('min-length').value)
-    };
-    
-    // Mock save - in real implementation, save to backend
-    showNotification('Password policy updated successfully!', 'success');
-    closePasswordPolicyModal();
-}
-
-function saveSecuritySettings() {
-    const settings = {
-        sessionTimeout: document.getElementById('session-timeout').value,
-        maxAttempts: document.getElementById('max-attempts').value
-    };
-    
-    // Mock save - in real implementation, save to backend
-    showNotification('Security settings updated successfully!', 'success');
-}
-
-function resetSecuritySettings() {
-    document.getElementById('session-timeout').value = '60';
-    document.getElementById('max-attempts').value = '5';
-    showNotification('Security settings reset to defaults', 'info');
-}
-
-// Close modals when clicking outside
-window.onclick = function(event) {
-    const deleteModal = document.getElementById('delete-modal');
-    const policyModal = document.getElementById('password-policy-modal');
-    
-    if (event.target === deleteModal) {
-        deleteModal.style.display = 'none';
-    }
-    if (event.target === policyModal) {
-        policyModal.style.display = 'none';
-    }
+/* ------------------- Close Modals on Outside Click ------------------- */
+window.onclick = function(event){
+    if(event.target===document.getElementById('delete-modal')) closeDeleteModal();
+    if(event.target===document.getElementById('password-policy-modal')) closePasswordPolicyModal();
 }
 </script>
 {% endblock %}

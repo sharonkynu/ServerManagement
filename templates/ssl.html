@@ -1,227 +1,149 @@
 {% extends "base.html" %}
-
 {% block title %}SSL Certificate Management{% endblock %}
 
 {% block content %}
-<div class="header-section">
+<div class="page-header">
   <h1>SSL Certificate Management</h1>
-  <p>Manage your SSL certificates and restart Nginx to apply changes.</p>
+  <p>Upload certificates and restart Nginx manually. Files will replace existing ones automatically.</p>
 </div>
 
-<div class="ssl-container">
-  <div class="ssl-card">
-    <div class="ssl-header">
-      <i class="fas fa-lock"></i>
-      <h2>Certificate Upload</h2>
+<div class="content-container">
+  <div class="card-row">
+    <!-- Certificate Upload Card -->
+    <div class="card ssl-card">
+      <h2>Upload Certificate (.cert)</h2>
+      <div class="drop-box" onclick="document.getElementById('certFile').click()">
+        <input type="file" id="certFile" style="display:none" accept=".cert" onchange="showSelectedFile('certFile','certStatus')">
+        <p id="certStatus">Click or drag .cert file here</p>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-upload" onclick="uploadSSL('cert')">Upload Certificate</button>
+        <button class="btn btn-remove" onclick="resetFile('certFile','certStatus')">Remove File</button>
+      </div>
     </div>
 
-    <p class="ssl-desc">
-      You can either upload your <b>cert.pem</b> and <b>privatekey.pem</b> files or paste their contents manually.  
-      After updating, click <b>Restart Nginx</b> to apply changes.
-    </p>
-
-    <form id="ssl-form" enctype="multipart/form-data">
-      <div class="form-group">
-        <label for="cert-file">Certificate File (cert.pem)</label>
-        <input type="file" id="cert-file" name="cert_file" accept=".pem" class="form-control">
+    <!-- Key Upload Card -->
+    <div class="card ssl-card">
+      <h2>Upload Private Key (.key)</h2>
+      <div class="drop-box" onclick="document.getElementById('keyFile').click()">
+        <input type="file" id="keyFile" style="display:none" accept=".key" onchange="showSelectedFile('keyFile','keyStatus')">
+        <p id="keyStatus">Click or drag .key file here</p>
       </div>
-
-      <div class="form-group">
-        <label for="key-file">Private Key File (privatekey.pem)</label>
-        <input type="file" id="key-file" name="key_file" accept=".pem" class="form-control">
+      <div class="card-actions">
+        <button class="btn btn-upload" onclick="uploadSSL('key')">Upload Key</button>
+        <button class="btn btn-remove" onclick="resetFile('keyFile','keyStatus')">Remove File</button>
       </div>
-
-      <div class="divider">OR</div>
-
-      <div class="form-group">
-        <label for="cert-text">Paste Certificate Content</label>
-        <textarea id="cert-text" name="cert_text" rows="5"
-          placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"></textarea>
-      </div>
-
-      <div class—the_pmlss="form-group">
-        <label for="key-text">Paste Private Key Content</label>
-        <textarea id="key-text" name="key_text" rows="5"
-          placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"></textarea>
-      </div>
-
-      <div class="ssl-actions">
-        <button type="submit" class="btn btn-purple">
-          <i class="fas fa-upload"></i> Upload Certificate
-        </button>
-
-        <button type="button" class="btn btn-yellow" onclick="restartNginx()">
-          <i class="fas fa-sync-alt"></i> Restart Nginx
-        </button>
-      </div>
-    </form>
-  <div class="ssl-footer">
-    <p class="note">Please restart Nginx after uploading new SSL files to make them effective.</p>
+    </div>
   </div>
-  </div>
+
+  <!-- Nginx Restart Button -->
+  <button class="btn btn-restart" onclick="restartNginx()">Restart Nginx</button>
+  <div class="status" id="nginxStatus"></div>
 </div>
-
 {% endblock %}
 
 {% block extra_css %}
 <style>
-/* ---- Header ---- */
-.header-section {
-  text-align: center;
-  margin-top: 25px;
-}
-.header-section h1 {
-  font-size: 2.2em;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 6px;
-}
-.header-section p {
-  color: #e5e7eb;
-  font-size: 1.1em;
-}
+body { background: #f3f0ff; font-family: 'Segoe UI', sans-serif; }
+.page-header { text-align: center; margin: 30px 0; }
+.page-header h1 { font-size: 2.5em; color: #6b21a8; }
+.page-header p { font-size: 1.1em; color: #4b5563; margin-top: 5px; }
 
-/* ---- SSL Card ---- */
-.ssl-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 30px;
-}
-.ssl-card {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  width: 850px;
-  padding: 25px 35px;
-}
-.ssl-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #6b21a8;
-}
-.ssl-header h2 {
-  font-weight: 600;
-  font-size: 1.4em;
-  color: #6b21a8;
-}
-.ssl-desc {
-  margin: 10px 0 20px;
-  color: #555;
-  background: #f3e8ff;
-  border-left: 5px solid #9333ea;
-  padding: 10px 15px;
-  border-radius: 8px;
-}
+.content-container { width: 90%; max-width: 1000px; margin: auto; display: flex; flex-direction: column; gap: 25px; align-items: center; }
+.card-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
 
-/* ---- Form ---- */
-.form-group {
-  margin-bottom: 16px;
-}
-.form-group label {
-  font-weight: 600;
-  color: #7e22ce;
-  margin-bottom: 6px;
-  display: block;
-}
-input[type="file"], textarea {
-  width: 100%;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 0.95em;
-  background: #fafafa;
-  transition: all 0.3s;
-}
-input[type="file"]:hover, textarea:hover {
-  border-color: #a855f7;
-}
-textarea:focus, input[type="file"]:focus {
-  border-color: #7e22ce;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(168,85,247,0.2);
-}
+.card { background: #ffffff; border-radius: 16px; padding: 30px 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 450px; text-align: center; }
+.card h2 { margin-bottom: 20px; color: #7e22ce; }
 
-.divider {
-  text-align: center;
-  font-weight: 600;
-  color: #888;
-  margin: 15px 0;
-  position: relative;
-}
-.divider::before, .divider::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 40%;
-  height: 1px;
-  background: #ddd;
-}
-.divider::before { left: 0; }
-.divider::after { right: 0; }
+.drop-box { border: 2px dashed #a855f7; padding: 40px; border-radius: 12px; cursor: pointer; background: #f8f7ff; transition: 0.3s; }
+.drop-box:hover { background: #e9e6ff; }
+.drop-box p { margin: 0; color: #6b21a8; font-size: 1em; }
 
-.ssl-actions {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
+.card-actions { display: flex; justify-content: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.btn { padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-size: 1em; transition: 0.3s; font-weight: 600; }
+.btn-upload { background: linear-gradient(90deg,#7e22ce,#a855f7); color: #fff; }
+.btn-upload:hover { background: linear-gradient(90deg,#6b21a8,#9333ea); }
+.btn-remove { background: #f87171; color: #fff; }
+.btn-remove:hover { background: #dc2626; }
+.btn-restart { background: #fbbf24; color: #111827; padding: 14px 40px; font-weight: 700; border-radius: 12px; }
+.btn-restart:hover { background: #f59e0b; }
 
-/* ---- Buttons ---- */
-.btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
-  font-size: 1em;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.btn-purple {
-  background: linear-gradient(90deg, #7e22ce, #a855f7);
-}
-.btn-purple:hover {
-  background: linear-gradient(90deg, #6b21a8, #9333ea);
-}
-.btn-yellow {
-  background: linear-gradient(90deg, #f59e0b, #fbbf24);
-}
-.btn-yellow:hover {
-  background: linear-gradient(90deg, #d97706, #f59e0b);
-}
-.ssl-footer {
-  text-align: center;
-  margin-top: 20px;
-}
-.ssl-footer .note {
-  color: #666;
-  font-size: 0.9em;
-}
+.status { margin-top: 10px; font-size: 0.95em; min-height: 18px; text-align: center; }
+.status.success { color: #16a34a; }
+.status.error { color: #dc2626; }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.getElement? =document.getElementById('ssl-form');
-if(document.getElement){document.getElement.addEventListener('submit',async(e)=>{
-  e.preventNormal = e.preventDefault();
-  const formData = new FormData(e.target);
-  const res = await fetch('/api/ssl_upload', {method:'POST',body:formData});
-  const data = await res.json();
-  alert(data.message || "SSL certificate uploaded successfully!");
-});}
-async function restartNginx(){
-  if(!confirm("Are you sure you want to restart Nginx?")) return;
-  const res = await fetch('/api/nginx_control',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'restart'})
-  });
-  const data = await res.json();
-  alert(data.message || "Nginx restarted successfully!");
+function showSelectedFile(fileId, statusId) {
+    const fileInput = document.getElementById(fileId);
+    const status = document.getElementById(statusId);
+
+    if (fileInput.files.length) {
+        const fileName = fileInput.files[0].name;
+        status.textContent = `Already selected: ${fileName}`;
+        status.className = "status";
+    } else {
+        status.textContent = "Click or drag file here";
+        status.className = "status";
+    }
+}
+
+function resetFile(fileId, statusId) {
+    document.getElementById(fileId).value = "";
+    document.getElementById(statusId).textContent = "Click or drag file here";
+    document.getElementById(statusId).className = "status";
+}
+
+async function uploadSSL(type) {
+    const fileInput = document.getElementById(type === 'cert' ? 'certFile' : 'keyFile');
+    const status = document.getElementById(type === 'cert' ? 'certStatus' : 'keyStatus');
+
+    if (!fileInput.files.length) {
+        status.textContent = "No file selected!";
+        status.className = "status error";
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const allowedExt = type === 'cert' ? '.cert' : '.key';
+    if (!file.name.toLowerCase().endsWith(allowedExt)) {
+        status.textContent = `Invalid file type! Only ${allowedExt} allowed.`;
+        status.className = "status error";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("field", type);
+    formData.append("file", file);
+
+    status.textContent = "Uploading...";
+    status.className = "status";
+    try {
+        const res = await fetch("/api/ssl_upload", { method: "POST", body: formData });
+        const data = await res.json();
+        status.textContent = data.message;
+        status.className = data.status === "success" ? "status success" : "status error";
+    } catch (err) {
+        status.textContent = "Upload failed: " + err.message;
+        status.className = "status error";
+    }
+}
+
+async function restartNginx() {
+    const status = document.getElementById("nginxStatus");
+    status.textContent = "Restarting Nginx...";
+    status.className = "status";
+    try {
+        const res = await fetch("/api/nginx_restart", { method: "POST" });
+        const data = await res.json();
+        status.textContent = data.message;
+        status.className = data.status === "success" ? "status success" : "status error";
+    } catch (err) {
+        status.textContent = "Restart failed: " + err.message;
+        status.className = "status error";
+    }
 }
 </script>
 {% endblock %}

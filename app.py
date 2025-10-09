@@ -639,78 +639,56 @@ def api_delete_user(username):
 def ssl_page():
     if 'user' not in session:
         return redirect(url_for('login'))
-    
     return render_template('ssl.html')
 
-@app.route('/api/ssl_config', methods=['POST'])
-def api_ssl_config():
-    if 'user' not in session:
-        return jsonify({'error': 'Not authenticated'}), 401
-    
-    config = request.json
-    ssl_enabled = config.get('ssl_enabled', False)
-    try:
-        update_docker_compose_env('SSL_ENABLED', str(ssl_enabled).lower())
-        if restart_docker_container():
-            return jsonify({'status': 'success', 'message': 'SSL configuration updated and container restarted'})
-        else:
-            return jsonify({'status': 'error', 'message': 'Failed to restart container'})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
 
+ALLOWED_EXTENSIONS = {
+    'cert': '.cert',
+    'key': '.key'
+}
 
-@app.route('/api/nginx_control', methods=['POST'])
-def api_nginx_control():
-    if 'user' not in session:
-        return jsonify({'error': 'Not authenticated'}), 401
-    
-    data = request.json
-    action = data.get('action')  # restart, stop, or start
-    
-    try:
-        if action == 'restart':
-            subprocess.run(['sudo', 'systemctl', 'restart', 'nginx'], check=True)
-            return jsonify({'status': 'success', 'message': 'Nginx restarted successfully'})
-        elif action == 'stop':
-            subprocess.run(['sudo', 'systemctl', 'stop', 'nginx'], check=True)
-            return jsonify({'status': 'success', 'message': 'Nginx stopped successfully'})
-        elif action == 'start':
-            subprocess.run(['sudo', 'systemctl', 'start', 'nginx'], check=True)
-            return jsonify({'status': 'success', 'message': 'Nginx started successfully'})
-        else:
-            return jsonify({'status': 'error', 'message': 'Invalid action'})
-    except subprocess.CalledProcessError as e:
-        return jsonify({'status': 'error', 'message': f'Failed to {action} nginx: {str(e)}'})
+CERT_PATH = '/var/www/ssl/tst/tst.cert'  # change to writable path
+KEY_PATH = '/var/www/ssl/tst/tst.key'
 
 @app.route('/api/ssl_upload', methods=['POST'])
 def api_ssl_upload():
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
+
     try:
-        os.makedirs('ssl', exist_ok=True)
-        # Support file upload (multipart) or raw text JSON
-        if request.content_type and 'multipart/form-data' in request.content_type:
-            cert_file = request.files.get('cert_file')
-            key_file = request.files.get('key_file')
-            if not cert_file or not key_file:
-                return jsonify({'status': 'error', 'message': 'Certificate and key files are required'})
-            cert_path = os.path.join('ssl', 'certificate.pem')
-            key_path = os.path.join('ssl', 'private_key.pem')
-            cert_file.save(cert_path)
-            key_file.save(key_path)
-        else:
-            data = request.json or {}
-            cert_text = data.get('cert_text')
-            key_text = data.get('key_text')
-            if not cert_text or not key_text:
-                return jsonify({'status': 'error', 'message': 'cert_text and key_text are required'}), 400
-            with open(os.path.join('ssl', 'certificate.pem'), 'w') as f:
-                f.write(cert_text)
-            with open(os.path.join('ssl', 'private_key.pem'), 'w') as f:
-                f.write(key_text)
-        return jsonify({'status': 'success', 'message': 'Certificate and key saved'})
+        field = request.form.get('field')  # 'cert' or 'key'
+        file = request.files.get('file')
+        if not file or field not in ['cert', 'key']:
+            return jsonify({'status': 'error', 'message': 'Invalid upload'}), 400
+
+        # Server-side extension check
+        allowed_ext = ALLOWED_EXTENSIONS[field]
+        if not file.filename.lower().endswith(allowed_ext):
+            return jsonify({'status': 'error', 'message': f'Invalid file type! Only {allowed_ext} allowed.'}), 400
+
+        save_path = CERT_PATH if field == 'cert' else KEY_PATH
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+        try:
+            file.save(save_path)
+            os.chmod(save_path, 0o600)
+            return jsonify({'status': 'success', 'message': f'{field.upper()} uploaded successfully'})
+        except PermissionError:
+            return jsonify({'status': 'error', 'message': 'Permission denied. Check folder permissions.'}), 403
+
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/api/nginx_restart', methods=['POST'])
+def api_nginx_restart():
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    try:
+        subprocess.run(['sudo', 'systemctl', 'restart', 'nginx'], check=True)
+        return jsonify({'status': 'success', 'message': 'Nginx Restarted successfully'})
+    except subprocess.CalledProcessError:
+        return jsonify({'status': 'error', 'message': 'Restart failed'})
+
 
 if __name__ == '__main__':
     # Create default admin user if users.json doesn't exist
