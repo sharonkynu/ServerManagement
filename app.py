@@ -22,7 +22,7 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 # Configuration
 USERS_FILE = os.environ.get('USERS_FILE', 'users.json')
 DOCKER_COMPOSE_FILE = os.environ.get('DOCKER_COMPOSE_FILE', 'docker-compose.yml')
-COMPOSE_BASE_DIR = os.environ.get('COMPOSE_BASE_DIR', '/home/sharon/Pictures/ServerManagement/tst')
+COMPOSE_BASE_DIR = os.environ.get('COMPOSE_BASE_DIR', '/home/kynu/H323/ServerManagement/tst')
 
 def load_users():
     try:
