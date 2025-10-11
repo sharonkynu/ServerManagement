@@ -451,6 +451,12 @@ def ports_page():
         return redirect('/login')
     return render_template('ports.html')
 
+@app.route('/port-config')
+def port_config_page():
+    if 'user' not in session:
+        return redirect('/login')
+    return render_template('port_config.html')
+
 
 @app.route('/api/ports_config', methods=['POST'])
 def api_ports_config():
@@ -688,6 +694,220 @@ def api_nginx_restart():
         return jsonify({'status': 'success', 'message': 'Nginx Restarted successfully'})
     except subprocess.CalledProcessError:
         return jsonify({'status': 'error', 'message': 'Restart failed'})
+
+@app.route('/api/check_port_status', methods=['GET'])
+def api_check_port_status():
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    try:
+        # Default ports that should always be available
+        default_ports = [
+            {'id': 'http', 'name': 'HTTP', 'port': 80, 'enabled': True, 'isDefault': True},
+            {'id': 'https', 'name': 'HTTPS', 'port': 443, 'enabled': True, 'isDefault': True},
+            {'id': 'ssh', 'name': 'SSH', 'port': 22, 'enabled': True, 'isDefault': True}
+        ]
+        
+        # Get ports currently open in system (ss)
+        ss_output = subprocess.getoutput("ss -tuln | awk '{print $5}' | grep -oE '[0-9]+$' | sort -u")
+        system_open_ports = set()
+        for port in ss_output.split():
+            if port.strip().isdigit():
+                system_open_ports.add(int(port.strip()))
+
+        # Get UFW status for each port
+        ufw_output = subprocess.getoutput("sudo ufw status")
+        ufw_ports = {}
+        
+        for line in ufw_output.splitlines():
+            if "ALLOW" in line or "DENY" in line:
+                parts = line.split()
+                for part in parts:
+                    if part.isdigit():
+                        port_num = int(part)
+                        ufw_ports[port_num] = "ALLOW" in line
+
+        # Update default ports with actual system status
+        for port in default_ports:
+            port_num = port['port']
+            if port_num in system_open_ports:
+                port['enabled'] = ufw_ports.get(port_num, True)
+            else:
+                port['enabled'] = False
+
+        # Add other open ports found in system
+        other_ports = []
+        for port_num in system_open_ports:
+            if port_num not in [80, 443, 22]:  # Not a default port
+                other_ports.append({
+                    'id': f'port_{port_num}',
+                    'name': f'Port {port_num}',
+                    'port': port_num,
+                    'enabled': ufw_ports.get(port_num, True),
+                    'isDefault': False
+                })
+
+        all_ports = default_ports + other_ports
+        
+        return jsonify({
+            'status': 'success', 
+            'ports': all_ports,
+            'system_open_ports': sorted(list(system_open_ports))
+        })
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/api/scan_ports', methods=['GET'])
+def api_scan_ports():
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    try:
+        # Use nmap to scan common ports
+        nmap_output = subprocess.getoutput("nmap -sT -O localhost 2>/dev/null || echo 'nmap not available'")
+        
+        # Also get netstat output as fallback
+        netstat_output = subprocess.getoutput("netstat -tuln 2>/dev/null || ss -tuln")
+        
+        # Parse netstat/ss output for open ports
+        open_ports = []
+        for line in netstat_output.split('\n'):
+            if 'LISTEN' in line or 'tcp' in line.lower():
+                parts = line.split()
+                for part in parts:
+                    if ':' in part and part.split(':')[-1].isdigit():
+                        port = int(part.split(':')[-1])
+                        if port not in [port_info['port'] for port_info in open_ports]:
+                            # Try to identify service
+                            service_name = "Unknown"
+                            if port == 22:
+                                service_name = "SSH"
+                            elif port == 80:
+                                service_name = "HTTP"
+                            elif port == 443:
+                                service_name = "HTTPS"
+                            elif port == 21:
+                                service_name = "FTP"
+                            elif port == 25:
+                                service_name = "SMTP"
+                            elif port == 53:
+                                service_name = "DNS"
+                            elif port == 110:
+                                service_name = "POP3"
+                            elif port == 143:
+                                service_name = "IMAP"
+                            elif port == 993:
+                                service_name = "IMAPS"
+                            elif port == 995:
+                                service_name = "POP3S"
+                            elif port == 587:
+                                service_name = "SMTP-Submission"
+                            elif port == 465:
+                                service_name = "SMTPS"
+                            elif port == 8080:
+                                service_name = "HTTP-Alt"
+                            elif port == 8443:
+                                service_name = "HTTPS-Alt"
+                            elif port == 3306:
+                                service_name = "MySQL"
+                            elif port == 5432:
+                                service_name = "PostgreSQL"
+                            elif port == 6379:
+                                service_name = "Redis"
+                            elif port == 27017:
+                                service_name = "MongoDB"
+                            elif port == 9200:
+                                service_name = "Elasticsearch"
+                            elif port == 5601:
+                                service_name = "Kibana"
+                            
+                            open_ports.append({
+                                'port': port,
+                                'service': service_name,
+                                'state': 'open',
+                                'protocol': 'tcp'
+                            })
+
+        # Sort by port number
+        open_ports.sort(key=lambda x: x['port'])
+        
+        return jsonify({
+            'status': 'success',
+            'scan_results': open_ports,
+            'nmap_output': nmap_output if 'nmap not available' not in nmap_output else None,
+            'total_ports': len(open_ports)
+        })
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/api/system_ports', methods=['POST'])
+def api_system_ports():
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    try:
+        data = request.json
+        ports = data.get('ports', [])
+        default_ports = data.get('defaultPorts', [])
+        custom_ports = data.get('customPorts', [])
+        
+        # Process all ports (default + custom)
+        all_ports = ports if ports else (default_ports + custom_ports)
+        
+        # Log the configuration for debugging
+        os.makedirs('logs', exist_ok=True)
+        with open(os.path.join('logs', 'ports_last_config.json'), 'w') as f:
+            json.dump({
+                'ports': all_ports,
+                'default_ports': default_ports,
+                'custom_ports': custom_ports,
+                'timestamp': datetime.now().isoformat()
+            }, f, indent=2)
+        
+        # Apply UFW rules for each port
+        for port_config in all_ports:
+            port_num = port_config.get('port')
+            enabled = port_config.get('enabled', False)
+            port_name = port_config.get('name', f'Port {port_num}')
+
+            # Validate port number
+            if not isinstance(port_num, int) or not (1 <= port_num <= 65535):
+                continue
+
+            port_str = str(port_num)
+            
+            try:
+                # Apply firewall rules safely
+                if enabled:
+                    # Allow the port
+                    result = subprocess.run(["sudo", "ufw", "allow", port_str], 
+                                          capture_output=True, text=True, check=False)
+                    print(f"UFW allow {port_str}: {result.returncode} - {result.stdout} - {result.stderr}")
+                else:
+                    # Deny the port
+                    result = subprocess.run(["sudo", "ufw", "deny", port_str], 
+                                          capture_output=True, text=True, check=False)
+                    print(f"UFW deny {port_str}: {result.returncode} - {result.stdout} - {result.stderr}")
+                    
+            except Exception as port_error:
+                print(f"Error configuring port {port_str}: {port_error}")
+                continue
+
+        # Reload UFW to apply changes
+        reload_result = subprocess.run(["sudo", "ufw", "--force", "reload"], 
+                                     capture_output=True, text=True, check=False)
+        print(f"UFW reload: {reload_result.returncode} - {reload_result.stdout} - {reload_result.stderr}")
+        
+        return jsonify({
+            'status': 'success', 
+            'message': f'Port configuration applied successfully. {len(all_ports)} ports processed.',
+            'processed_ports': len(all_ports)
+        })
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 if __name__ == '__main__':

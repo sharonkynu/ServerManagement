@@ -1,0 +1,529 @@
+{% extends "base.html" %}
+{% block title %}Port Configuration - Server Management{% endblock %}
+
+{% block content %}
+<style>
+/* --- Layout --- */
+.page-header { text-align:center; margin-bottom:25px; }
+.ports-grid { display:flex; flex-direction:column; align-items:center; gap:25px; }
+.config-card, .test-card { background:#fff; border-radius:16px; box-shadow:0 6px 20px rgba(0,0,0,0.08); width:90%; max-width:800px; padding:25px; animation:fadeInUp 0.5s ease-out; }
+.card-header { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+.card-header h3 { font-size:1.4rem; margin:0; }
+.card-icon i { background:#007BFF; color:white; padding:10px; border-radius:10px; }
+
+/* --- Protocols --- */
+.protocol-section { border:1px solid #eee; border-radius:12px; padding:15px; margin-bottom:15px; background:#fafafa; transition:all 0.3s ease; }
+.protocol-header { display:flex; justify-content:space-between; align-items:center; }
+.protocol-info { display:flex; align-items:center; gap:10px; }
+.protocol-details h4 { margin:0; font-weight:600; }
+.protocol-details p { margin:0; font-size:0.9em; color:#666; }
+
+/* --- Toggle Switch --- */
+.switch { position:relative; display:inline-block; width:55px; height:28px; }
+.switch input { display:none; }
+.slider { position:absolute; cursor:pointer; background-color:#ccc; border-radius:34px; top:0; left:0; right:0; bottom:0; transition:.4s; }
+.slider:before { position:absolute; content:""; height:20px; width:20px; left:4px; bottom:4px; background:white; transition:.4s; border-radius:50%; }
+input:checked + .slider { background-color:#007BFF; }
+input:checked + .slider:before { transform:translateX(26px); }
+
+/* --- Form --- */
+.config-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px; }
+.form-group label { display:block; font-weight:500; margin-bottom:5px; }
+input[type="number"], input[type="text"] { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #ccc; transition:border 0.3s ease; }
+input:focus { border-color:#007BFF; outline:none; }
+
+/* --- Buttons --- */
+.form-actions { text-align:center; margin-top:25px; display:flex; justify-content:center; gap:15px; }
+.btn { padding:10px 18px; border:none; border-radius:8px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; transition:background 0.3s ease; }
+.btn-primary { background:#007BFF; color:white; } .btn-primary:hover { background:#0056b3; }
+.btn-secondary { background:#6c757d; color:white; } .btn-secondary:hover { background:#565e64; }
+.btn-info { background:#17a2b8; color:white; } .btn-info:hover { background:#117a8b; }
+
+/* --- Test Section --- */
+.test-card h4 { font-size:1.1rem; margin-bottom:8px; }
+.test-buttons { display:flex; flex-wrap:wrap; gap:10px; }
+.test-btn { background:#007BFF; color:white; border:none; border-radius:6px; padding:8px 14px; cursor:pointer; transition:all 0.3s ease; }
+.test-btn:hover { background:#0056b3; }
+.test-output { background:#111; color:#0f0; font-family:monospace; border-radius:8px; margin-top:15px; padding:12px; height:200px; overflow-y:auto; }
+
+/* --- Notifications --- */
+.notification { position:fixed; top:20px; right:-400px; background:#333; color:white; padding:12px 20px; border-radius:8px; opacity:0; z-index:1000; display:flex; align-items:center; gap:8px; transition: all 0.5s ease; }
+.notification.show { right:20px; opacity:1; }
+.notification-success { background:#28a745; }
+.notification-error { background:#dc3545; }
+
+/* --- Port Management Styles --- */
+.ports-table-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+.ports-table-header h5 { margin:0; font-size:1.1rem; font-weight:600; }
+.ports-table { background:#f8f9fa; border-radius:8px; padding:15px; min-height:100px; }
+.loading-ports { text-align:center; color:#666; padding:20px; }
+.port-row { display:flex; align-items:center; justify-content:space-between; background:white; border:1px solid #e9ecef; border-radius:6px; padding:12px; margin-bottom:8px; transition:all 0.3s ease; }
+.port-row:hover { box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+.port-info { display:flex; align-items:center; gap:12px; flex:1; }
+.port-name { font-weight:600; color:#333; }
+.port-number { background:#007BFF; color:white; padding:4px 8px; border-radius:4px; font-size:0.9em; font-weight:600; }
+.port-status { display:flex; align-items:center; gap:8px; }
+.port-actions { display:flex; align-items:center; gap:8px; }
+.delete-port-btn { background:#dc3545; color:white; border:none; border-radius:4px; padding:6px 10px; cursor:pointer; font-size:0.8em; transition:background 0.3s ease; }
+.delete-port-btn:hover { background:#c82333; }
+.empty-ports { text-align:center; color:#666; padding:30px; font-style:italic; }
+
+/* --- Port Scanner Styles --- */
+.scan-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.scan-header h5 { margin:0; font-size:1.1rem; font-weight:600; }
+.scan-summary { background:#007BFF; color:white; padding:4px 8px; border-radius:4px; font-size:0.9em; font-weight:600; }
+.scan-output { background:#111; color:#0f0; font-family:monospace; border-radius:8px; padding:12px; height:300px; overflow-y:auto; font-size:0.9em; }
+.scan-port-item { display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #333; }
+.scan-port-info { display:flex; align-items:center; gap:15px; }
+.scan-port-number { background:#007BFF; color:white; padding:2px 6px; border-radius:3px; font-weight:600; min-width:50px; text-align:center; }
+.scan-port-service { color:#00ff00; font-weight:600; }
+.scan-port-state { color:#ffff00; }
+.scan-port-protocol { color:#00ffff; }
+
+/* --- Enhanced Port Management --- */
+.port-controls { display:flex; align-items:center; gap:10px; }
+.port-toggle-container { display:flex; align-items:center; gap:5px; }
+.port-status-indicator { width:8px; height:8px; border-radius:50%; background:#dc3545; }
+.port-status-indicator.enabled { background:#28a745; }
+.port-edit-btn { background:#17a2b8; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer; font-size:0.8em; }
+.port-edit-btn:hover { background:#138496; }
+
+/* --- Animations --- */
+@keyframes fadeInUp { from { transform:translateY(15px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+@keyframes slideDown { from { max-height:0; opacity:0; } to { max-height:500px; opacity:1; } }
+</style>
+
+<div class="page-header">
+    <h1>Port Configuration</h1>
+    <p>Manage system ports, firewall rules, and network access controls.</p>
+</div>
+
+<div class="ports-grid">
+        <!-- Port Scanner -->
+        <div class="config-card">
+            <div class="card-header">
+                <div class="card-icon"><i class="fas fa-search"></i></div>
+                <h3>Port Scanner</h3>
+            </div>
+            <div class="protocol-section">
+                <div class="protocol-header">
+                    <div class="protocol-info">
+                        <i class="fas fa-radar"></i>
+                        <div class="protocol-details">
+                            <h4>Scan Open Ports</h4>
+                            <p>Discover all open ports on the system (nmap-like results)</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-info" id="scan-ports-btn">
+                        <i class="fas fa-search"></i> Scan Ports
+                    </button>
+                </div>
+                <div id="scan-results" style="display:none; margin-top:15px;">
+                    <div class="scan-header">
+                        <h5>Scan Results</h5>
+                        <span id="scan-summary" class="scan-summary"></span>
+                    </div>
+                    <div class="scan-output" id="scan-content">
+                        Click "Scan Ports" to start scanning...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- Port Management Table -->
+    <div class="config-card">
+        <div class="card-header">
+            <div class="card-icon"><i class="fas fa-cogs"></i></div>
+            <h3>Port Management</h3>
+        </div>
+        
+        <div class="protocol-section">
+            <div class="protocol-header">
+                <div class="protocol-info">
+                    <i class="fas fa-network-wired"></i>
+                    <div class="protocol-details">
+                        <h4>Configure Ports</h4>
+                        <p>Manage port access and permissions</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="ports-table-container" style="margin-top:15px;">
+                <div class="ports-table-header">
+                    <h5>Configured Ports</h5>
+                    <button type="button" class="btn btn-primary" id="refresh-ports">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="ports-table" id="ports-table">
+                    <div class="loading-ports">
+                        <i class="fas fa-spinner fa-spin"></i> Loading ports...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add New Port Section -->
+        <div class="protocol-section">
+            <div class="protocol-header">
+                <div class="protocol-info">
+                    <i class="fas fa-plus"></i>
+                    <div class="protocol-details">
+                        <h4>Add New Port</h4>
+                        <p>Add a new port to the system</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="add-port-form" style="margin-top:15px;">
+                <div class="config-grid">
+                    <div class="form-group">
+                        <label>Port Name</label>
+                        <input type="text" id="new-port-name" name="port_name" placeholder="e.g., Web Server" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Port Number</label>
+                        <input type="number" id="new-port-number" name="port_number" placeholder="e.g., 8080" min="1" max="65535" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Enable Port</label>
+                        <label class="switch">
+                            <input type="checkbox" id="new-port-enabled" name="port_enabled" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Port
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Apply Changes -->
+        <div class="form-actions" style="margin-top:25px;">
+            <button type="button" class="btn btn-primary" id="apply-port-changes">
+                <i class="fas fa-save"></i> Apply Changes
+            </button>
+            <button type="button" class="btn btn-secondary" id="reset-port-changes">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+        </div>
+
+        <div id="port-apply-status" style="margin-top:12px; font-weight:500;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Port Management functionality
+  const portsTable = document.getElementById('ports-table');
+  const scanResults = document.getElementById('scan-results');
+  const scanContent = document.getElementById('scan-content');
+  const scanSummary = document.getElementById('scan-summary');
+  const scanPortsBtn = document.getElementById('scan-ports-btn');
+  const refreshPortsBtn = document.getElementById('refresh-ports');
+  const addPortForm = document.getElementById('add-port-form');
+  const applyPortChangesBtn = document.getElementById('apply-port-changes');
+  const resetPortChangesBtn = document.getElementById('reset-port-changes');
+  const portApplyStatus = document.getElementById('port-apply-status');
+
+  let portsData = [];
+  let hasUnsavedChanges = false;
+
+  function showNotification(msg, type) {
+    const n = document.createElement('div');
+    n.className = `notification notification-${type}`;
+    n.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-triangle'}"></i> ${msg}`;
+    document.body.appendChild(n);
+    setTimeout(()=>n.classList.add('show'),100);
+    setTimeout(()=>{ n.classList.remove('show'); setTimeout(()=>document.body.removeChild(n),300); },3000);
+  }
+
+  // Load ports data
+  function loadPorts() {
+    portsTable.innerHTML = '<div class="loading-ports"><i class="fas fa-spinner fa-spin"></i> Loading ports...</div>';
+    
+    // Default ports that should always be available
+    const defaultPorts = [
+      { id: 'http', name: 'HTTP', port: 80, enabled: true, isDefault: true },
+      { id: 'https', name: 'HTTPS', port: 443, enabled: true, isDefault: true },
+      { id: 'ssh', name: 'SSH', port: 22, enabled: true, isDefault: true }
+    ];
+    
+    fetch('/api/check_port_status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Merge default ports with configured ports
+          const configuredPorts = data.ports || [];
+          const mergedPorts = [...defaultPorts];
+          
+          // Add configured ports that aren't defaults
+          configuredPorts.forEach(port => {
+            const isDefault = defaultPorts.some(dp => dp.port === port.port);
+            if (!isDefault) {
+              mergedPorts.push({ ...port, isDefault: false });
+            } else {
+              // Update default port with configured status
+              const defaultIndex = mergedPorts.findIndex(dp => dp.port === port.port);
+              if (defaultIndex !== -1) {
+                mergedPorts[defaultIndex] = { ...mergedPorts[defaultIndex], enabled: port.enabled };
+              }
+            }
+          });
+          
+          portsData = mergedPorts;
+          renderPortsTable();
+        } else {
+          // If API fails, show default ports
+          portsData = defaultPorts;
+          renderPortsTable();
+        }
+      })
+      .catch(err => {
+        // If API fails, show default ports
+        portsData = defaultPorts;
+        renderPortsTable();
+      });
+  }
+
+  // Render ports table
+  function renderPortsTable() {
+    if (portsData.length === 0) {
+      portsTable.innerHTML = '<div class="empty-ports">No ports configured. Add a new port below.</div>';
+      return;
+    }
+
+    const html = portsData.map(port => `
+      <div class="port-row" data-port-id="${port.id || port.port}">
+        <div class="port-info">
+          <div class="port-status-indicator ${port.enabled ? 'enabled' : ''}"></div>
+          <div class="port-name">
+            ${port.name || 'Unnamed Port'}
+            ${port.isDefault ? ' <span style="color: #007BFF; font-size: 0.8em;">(Default)</span>' : ''}
+          </div>
+          <div class="port-number">${port.port}</div>
+        </div>
+        <div class="port-controls">
+          <div class="port-toggle-container">
+            <span style="font-size: 0.9em; color: #666;">${port.enabled ? 'Enabled' : 'Disabled'}</span>
+            <label class="switch">
+              <input type="checkbox" class="port-toggle" ${port.enabled ? 'checked' : ''} data-port-id="${port.id || port.port}">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="port-actions">
+          ${port.isDefault ? 
+            '<span style="color: #666; font-size: 0.8em;">System</span>' : 
+            `<button type="button" class="delete-port-btn" onclick="deletePort('${port.id || port.port}')" title="Delete Port">
+              <i class="fas fa-trash"></i>
+            </button>`
+          }
+        </div>
+      </div>
+    `).join('');
+
+    portsTable.innerHTML = html;
+
+    // Add event listeners to toggles
+    portsTable.querySelectorAll('.port-toggle').forEach(toggle => {
+      toggle.addEventListener('change', () => {
+        hasUnsavedChanges = true;
+        updateApplyButton();
+      });
+    });
+  }
+
+  // Scan ports (nmap-like functionality)
+  function scanPorts() {
+    scanContent.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning ports...';
+    scanResults.style.display = 'block';
+    scanPortsBtn.disabled = true;
+    scanPortsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+    
+    fetch('/api/scan_ports')
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          const scanResults = data.scan_results || [];
+          const totalPorts = data.total_ports || 0;
+          
+          // Update summary
+          scanSummary.textContent = `${totalPorts} ports found`;
+          
+          if (scanResults.length === 0) {
+            scanContent.innerHTML = 'No open ports found.';
+          } else {
+            // Display ports in nmap-like format
+            let output = `PORT     STATE SERVICE\n`;
+            output += `----     ----- -------\n`;
+            
+            scanResults.forEach(port => {
+              const portStr = port.port.toString().padEnd(5);
+              const stateStr = port.state.padEnd(5);
+              const serviceStr = port.service || 'unknown';
+              output += `${portStr} ${stateStr} ${serviceStr}\n`;
+            });
+            
+            scanContent.innerHTML = `<pre>${output}</pre>`;
+          }
+        } else {
+          scanContent.innerHTML = 'Error scanning ports: ' + (data.message || 'Unknown error');
+        }
+      })
+      .catch(err => {
+        scanContent.innerHTML = 'Error scanning ports: ' + err.message;
+      })
+      .finally(() => {
+        scanPortsBtn.disabled = false;
+        scanPortsBtn.innerHTML = '<i class="fas fa-search"></i> Scan Ports';
+      });
+  }
+
+  // Add new port
+  function addNewPort(event) {
+    event.preventDefault();
+    
+    const portName = document.getElementById('new-port-name').value;
+    const portNumber = document.getElementById('new-port-number').value;
+    const portEnabled = document.getElementById('new-port-enabled').checked;
+
+    if (!portName || !portNumber) {
+      showNotification('Please fill in all fields', 'error');
+      return;
+    }
+
+    const newPort = {
+      name: portName,
+      port: parseInt(portNumber),
+      enabled: portEnabled
+    };
+
+    // Add to local data
+    portsData.push(newPort);
+    hasUnsavedChanges = true;
+    
+    // Clear form
+    addPortForm.reset();
+    document.getElementById('new-port-enabled').checked = true;
+    
+    // Re-render table
+    renderPortsTable();
+    updateApplyButton();
+    
+    showNotification('Port added to configuration. Click "Apply Changes" to save.', 'success');
+  }
+
+  // Delete port
+  function deletePort(portId) {
+    const port = portsData.find(p => (p.id || p.port) == portId);
+    if (port && port.isDefault) {
+      showNotification('Cannot delete default system ports', 'error');
+      return;
+    }
+    
+    if (confirm('Are you sure you want to delete this port?')) {
+      portsData = portsData.filter(port => (port.id || port.port) != portId);
+      hasUnsavedChanges = true;
+      renderPortsTable();
+      updateApplyButton();
+      showNotification('Port removed from configuration. Click "Apply Changes" to save.', 'success');
+    }
+  }
+
+  // Update apply button state
+  function updateApplyButton() {
+    if (hasUnsavedChanges) {
+      applyPortChangesBtn.style.background = '#28a745';
+      applyPortChangesBtn.innerHTML = '<i class="fas fa-save"></i> Apply Changes (Unsaved)';
+    } else {
+      applyPortChangesBtn.style.background = '#007BFF';
+      applyPortChangesBtn.innerHTML = '<i class="fas fa-save"></i> Apply Changes';
+    }
+  }
+
+  // Apply port changes
+  function applyPortChanges() {
+    if (!hasUnsavedChanges) {
+      showNotification('No changes to apply', 'error');
+      return;
+    }
+
+    const btn = applyPortChangesBtn;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
+    btn.disabled = true;
+
+    // Update ports data with current toggle states
+    portsData.forEach(port => {
+      const toggle = portsTable.querySelector(`.port-toggle[data-port-id="${port.id || port.port}"]`);
+      if (toggle) {
+        port.enabled = toggle.checked;
+      }
+    });
+
+    // Separate default ports and custom ports
+    const defaultPorts = portsData.filter(port => port.isDefault);
+    const customPorts = portsData.filter(port => !port.isDefault);
+    const allPorts = [...defaultPorts, ...customPorts];
+
+    fetch('/api/system_ports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        ports: allPorts,
+        defaultPorts: defaultPorts,
+        customPorts: customPorts
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        hasUnsavedChanges = false;
+        updateApplyButton();
+        showNotification(data.message || 'Port configuration applied successfully', 'success');
+        if (portApplyStatus) {
+          portApplyStatus.textContent = `Configuration applied at ${new Date().toLocaleTimeString()}`;
+        }
+      } else {
+        showNotification(data.message || 'Failed to apply port configuration', 'error');
+      }
+    })
+    .catch(err => {
+      showNotification('Network error: ' + err.message, 'error');
+    })
+    .finally(() => {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    });
+  }
+
+  // Reset port changes
+  function resetPortChanges() {
+    if (hasUnsavedChanges && confirm('Are you sure you want to discard all unsaved changes?')) {
+      loadPorts();
+      hasUnsavedChanges = false;
+      updateApplyButton();
+      if (portApplyStatus) portApplyStatus.textContent = '';
+      showNotification('Changes discarded', 'success');
+    }
+  }
+
+  // Event listeners
+  scanPortsBtn.addEventListener('click', scanPorts);
+  refreshPortsBtn.addEventListener('click', loadPorts);
+  addPortForm.addEventListener('submit', addNewPort);
+  applyPortChangesBtn.addEventListener('click', applyPortChanges);
+  resetPortChangesBtn.addEventListener('click', resetPortChanges);
+
+  // Load ports on page load
+  loadPorts();
+
+});
+</script>
+{% endblock %}

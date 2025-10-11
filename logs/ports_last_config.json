@@ -1,0 +1,18 @@
+{
+  "ports": [
+    {
+      "name": "sharon",
+      "port": 4444,
+      "enabled": true
+    }
+  ],
+  "default_ports": [],
+  "custom_ports": [
+    {
+      "name": "sharon",
+      "port": 4444,
+      "enabled": true
+    }
+  ],
+  "timestamp": "2025-10-11T12:27:28.680470"
+}

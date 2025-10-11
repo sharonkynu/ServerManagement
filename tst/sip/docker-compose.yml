@@ -3,9 +3,9 @@ services:
   voip_server:
     image: voip_server:latest
     environment:
-      - H323_ENABLED=true
+      - H323_ENABLED=false
       - SIP_ENABLED=false
-      - H323_PORT=1799
+      - H323_PORT=1798
       - SIP_PORT=5065
       - MAX_CONNECTIONS=100
       - LOG_LEVEL=debug
