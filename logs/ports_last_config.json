@@ -1,0 +1,10 @@
+{
+  "ports": [
+    {
+      "name": "sharon",
+      "port": 3000,
+      "enabled": true
+    }
+  ],
+  "timestamp": "2025-10-11T11:46:11.319945"
+}

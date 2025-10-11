@@ -22,7 +22,7 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 # Configuration
 USERS_FILE = os.environ.get('USERS_FILE', 'users.json')
 DOCKER_COMPOSE_FILE = os.environ.get('DOCKER_COMPOSE_FILE', 'docker-compose.yml')
-COMPOSE_BASE_DIR = os.environ.get('COMPOSE_BASE_DIR', '/home/sharon/Pictures/ServerManagement/tst')
+COMPOSE_BASE_DIR = os.environ.get('COMPOSE_BASE_DIR', '/home/kynu/H323/ServerManagement/tst')
 
 def load_users():
     try:
@@ -525,6 +525,62 @@ def api_ports_config_state():
         return jsonify({'status': 'success', 'current_state': state})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+
+
+# --- Check port status ---
+@app.route('/api/check_port_status', methods=['GET'])
+def check_ports():
+    if 'user' not in session:
+        return jsonify({'error':'Not authenticated'}), 401
+    try:
+        default_ports = [
+            {'id':'http','name':'HTTP','port':80,'enabled':True,'isDefault':True},
+            {'id':'https','name':'HTTPS','port':443,'enabled':True,'isDefault':True},
+            {'id':'ssh','name':'SSH','port':22,'enabled':True,'isDefault':True}
+        ]
+        # system open ports
+        ss_output=subprocess.getoutput("ss -tuln | awk '{print $5}' | grep -oE '[0-9]+$' | sort -u")
+        system_ports=set(int(p.strip()) for p in ss_output.split() if p.strip().isdigit())
+        ufw_output=subprocess.getoutput("sudo ufw status")
+        ufw_ports={int(line.split()[0]):'ALLOW' in line for line in ufw_output.splitlines() if any(x in line for x in ['ALLOW','DENY']) and line.split()[0].isdigit()}
+
+        for port in default_ports:
+            port['enabled']=ufw_ports.get(port['port'],True) if port['port'] in system_ports else False
+
+        other_ports=[]
+        for p in system_ports:
+            if p not in [80,443,22]:
+                other_ports.append({'id':f'port_{p}','name':f'Port {p}','port':p,'enabled':ufw_ports.get(p,True),'isDefault':False})
+
+        return jsonify({'status':'success','ports':default_ports+other_ports,'system_open_ports':sorted(list(system_ports))})
+    except Exception as e:
+        return jsonify({'status':'error','message':str(e)})
+
+# --- Apply ports ---
+@app.route('/api/system_ports', methods=['POST'])
+def apply_ports():
+    if 'user' not in session:
+        return jsonify({'error':'Not authenticated'}), 401
+    try:
+        data=request.json
+        ports=data.get('ports',[])
+        os.makedirs('logs', exist_ok=True)
+        with open('logs/ports_last_config.json','w') as f:
+            json.dump({'ports':ports,'timestamp':datetime.now().isoformat()},f,indent=2)
+
+        for port_cfg in ports:
+            port_num=port_cfg.get('port')
+            enabled=port_cfg.get('enabled',False)
+            if not isinstance(port_num,int): continue
+            if enabled:
+                subprocess.getoutput(f"sudo ufw allow {port_num}")
+            else:
+                subprocess.getoutput(f"sudo ufw delete allow {port_num}")
+
+        return jsonify({'status':'success','message':'Port configuration applied successfully.'})
+    except Exception as e:
+        return jsonify({'status':'error','message':str(e)})
+
 
 @app.route('/users')
 def users_page():

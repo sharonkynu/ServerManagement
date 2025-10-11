@@ -6,7 +6,7 @@ services:
       - H323_ENABLED=false
       - SIP_ENABLED=false
       - H323_PORT=1728
-      - SIP_PORT=5065
+      - SIP_PORT=5060
       - MAX_CONNECTIONS=100
       - LOG_LEVEL=debug
     ports:
